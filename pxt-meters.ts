@@ -112,7 +112,7 @@ const blobData = [
 const blobBound = 7;
 */
 
-//% color=#402080 weight=100 icon="\uf0e4" block="meter" 
+//% color=#6070c0 weight=40 icon="\uf163" block="meter" 
 namespace meter {
     let styleIs: number = digitStyle;
     let mapSet: number[] = digitMaps; // array of frame bit-maps
