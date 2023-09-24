@@ -9,14 +9,13 @@
     "files": [
         "README.md",
         "pxt-meters.ts",
-        "test.ts",
-        "main.ts"
+        "test.ts"
     ],
     "testFiles": [
         "test.ts"
     ],
     "targetVersions": {
-        "target": "6.1.5",
+        "target": "6.1.6",
         "targetId": "microbit"
     },
     "supportedTargets": [
