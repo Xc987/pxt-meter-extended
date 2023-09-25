@@ -4,33 +4,34 @@ morse=github:grandpabond/pxt-meters
 # meter --- Adding values to your project!
 
 Many microbit projects are about taking measurements. The datalogger extension lets you make a historical record 
-of your measurements, but your project can often be brought to life by adding a real-time visual indicator.  The  ``||meter:meter||`` extension provides different ways to let you monitor a changing value.
+of your measurements, but your project can often be brought to life by adding a real-time visual indicator.  
+The  ``||meter:meter||`` extension provides various ways to let you monitor a changing value.
 
 The default meter shows a direct 2-digit readout of a value, which should lie in the range [0...99].
 
-For many purposes 2 digits provide enough accuracy, and this digital display is especially useful for 
-showing percentages.
+For many purposes 2 digits provide enough accuracy, especially when showing readings as percentages.
 
 ### ~reminder
 NOTE:  Since there are only 10 pixels for each digit they are inevitably somewhat stylized and take a bit of practice to read accurately --especially "0" and "8"
 ### ~
 
-# Displaying a new value #meter-show
+# Displaying a value #meter-show
 
 ```sig
 meter.show(value,  ms)
 ```
 This block adjusts the meter to show a new reading.
 
-``||meter:value||`` - is the new value to be shown.
+> ``||meter:value||`` - is the new value to be shown.
 
 If you click on the "+", you can set an optional parameter:
 
-``||meter:ms||`` - is used to control the speed of an animated adjustment to the new value. It shows intermediate values leading to the new ``||meter:value||`` after ms millisecs.  (This background animation only occurs if ``||meter:ms||`` exceeds 50ms).
+> ``||meter:ms||`` - is used to control the speed of an animated adjustment to the new value. It shows intermediate values leading to the new ``||meter:value||`` after ms millisecs.  (This background animation only occurs if ``||meter:ms||`` exceeds 50ms).
 
-## Range-checking
-Any attempt to show a value that lies outside the [``||meter:start||``...``||meter:limit||``] range will be constrained 
-to the nearest bound, but will flash to indicate the out-of-range error.
+### ~reminder
+NOTE: Any attempt to show a value that lies outside the [``||meter:start||``...``||meter:limit||``] range will be constrained 
+to the nearest bound, but will then flash to indicate the out-of-range error.
+### ~
 
 # Choosing an indicator meter #meter-use
 
@@ -38,13 +39,13 @@ to the nearest bound, but will flash to indicate the out-of-range error.
 meter.use(style, start, limit)
 ```
 Often the exact numeric value is less important than providing a rapid visual indication of a measurement.
-The function ``||meter:use()||`` selects one of a number of possible visual indicators
+The ``||meter:use()||`` block selects one of a number of possible visual indicators:
 
-``||meter:style||`` - chooses the indicator style (see below)
+> ``||meter:style||`` - chooses the indicator style (see below)
 
-``||meter:start||`` - is the value that maps to the bottom reading
+> ``||meter:start||`` - is the value that maps to the bottom reading
 
-``||meter:limit||`` - is the value that maps to the top reading
+> ``||meter:limit||`` - is the value that maps to the top reading
 
 ### ~reminder
 The operating range for indicator displays is completely flexible: it is quite permissible for ``||meter:start||`` 
@@ -53,23 +54,23 @@ fractional values are quite OK.
 ### ~
 
 ## Indicator Styles:
-``||meter:BAR||``:
+> ``||meter:BAR||``
 This meter style is similar to the built-in bar-graph function, filling up each row in turn from the bottom, 
 with 1, 3, or 5 centred pixels, giving a total of 15 distinct displays.
 
-``||meter:DIAL||``
+> ``||meter:DIAL||``
 This meter style shows a short 3-pixel pointer rotating from the 12 o'clock position through 24 different angles.
   
-``||meter:NEEDLE||``:
+> ``||meter:NEEDLE||``
 This meter style swings a needle centred on the top left corner from horizontal clockwise to vertical in 17 steps.
 
-``||meter:TIDAL||``:
+> ``||meter:TIDAL||``
 This meter style fills the display progressively from the bottom left to the top right in 25 steps.
 
-``||meter:BLOB||``:
+> ``||meter:BLOB||``
 This meter style is a simple centred disc that grows from a single pixel to fill the screen in 7 steps. 
 
-``||meter:SPIRAL||``:
+> ``||meter:SPIRAL||``
 This meter style is similar to the BLOB but winds round clockwise in a spiral to fill the screen in 25 steps.
 
 # Showing numbers with the digital meter #meter-digital
@@ -84,14 +85,14 @@ Use this block to switch back to showing numerical measurements.
 ```sig
 meter.reset()
 ```
-This function clears any out-of-range flashing and resets the meter.
+This block clears any out-of-range flashing and resets the meter.
 
-# Choosing a digital meter #meter-wait
+# Synchronising with an animated adjustment #meter-wait
 
 ```sig
 meter.wait()
 ```
-This function suspends your code until any background animated adjustment has reached the new value.
+This block suspends your code until any background animated adjustment has reached the new value.
 (Returns immediately if there is no animation going on.)
 
 # Interrupting an animated adjustment #meter-stop
@@ -99,9 +100,10 @@ This function suspends your code until any background animated adjustment has re
 ```sig
 meter.stop()
 ```
-This function stops any background animated adjustment immediately, wherever it has got to. 
+This block stops any background animated adjustment immediately, wherever it has got to. 
 (So it may not yet have reached the new value.)
 
+# EXamples
 
 
 
