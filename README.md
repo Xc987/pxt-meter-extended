@@ -103,8 +103,44 @@ meter.stop()
 This block stops any background animated adjustment immediately, wherever it has got to. 
 (So it may not yet have reached the new value.)
 
-# EXamples
+# Examples
 
+## Thermometer
+This code shows the current temperature (constrained to the range 0 degrees to 99 degrees):
+```block
+basic.forever(function () {
+    meter.show(input.temperature());
+    basic.pause(5000);
+})
+```
+
+## Compass
+The following code uses the rotary ``||meter:DIAL||`` style to show a compass needle that (should) always point North:
+
+```block
+meter.use(STYLES.DIAL, 0, 360);
+
+basic.forever(function () {
+    meter.show(360 - input.compassHeading())
+    basic.pause(500);
+})
+```
+
+
+## Noise Meter
+The following code uses the ``||meter:BAR||`` style to show changng noise levels. 
+It uses animation, and the sensitivity is auto-adjusted
+
+```block
+meter.use(STYLES.BAR, 0, 360);
+let average = 80;
+
+basic.forever(function () {
+    level = input.
+    meter.show(360 - input.compassHeading())
+    basic.pause(500);
+})
+```
 
 
 
