@@ -105,6 +105,10 @@ This block stops any background animated adjustment immediately, wherever it has
 
 # Examples
 
+## Clicker
+buttons --> DIGITAL count
+
+#
 ## Thermometer
 This code shows the current temperature (constrained to the range 0 degrees to 99 degrees):
 ```block
@@ -117,6 +121,7 @@ basic.forever(function () {
 ## Compass
 The following code uses the rotary ``||meter:DIAL||`` style to show a compass needle that (should) always point North:
 
+    (Wait till init tilting finished first)
 ```block
 meter.use(STYLES.DIAL, 0, 360);
 
@@ -128,19 +133,34 @@ basic.forever(function () {
 
 
 ## Noise Meter
-The following code uses the ``||meter:BAR||`` style to show changng noise levels. 
-It uses animation, and the sensitivity is auto-adjusted
+The following code uses the ``||meter:BAR||`` style to show peak noise levels. 
+
+Sound meter: sound-level--> BAR (decaying)
+      Stop() on fresh sound.
 
 ```block
 meter.use(STYLES.BAR, 0, 360);
 let average = 80;
 
 basic.forever(function () {
-    level = input.
     meter.show(360 - input.compassHeading())
     basic.pause(500);
 })
 ```
+
+## Water Spill
+accel -->TIDAL
+    Add gx + by for 45-degree tilt
+
+
+## Bangometer
+accel-->SPIRAL (decaying)
+     Uses stop() after knock input.
+# Lie-detector
+pad conduction-->NEEDLE (AVC)
+
+
+
 
 
 

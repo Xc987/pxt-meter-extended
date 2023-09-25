@@ -112,13 +112,13 @@ const blobData = [
 const blobBound = 7;
 */
 
-//% color=#6070c0 weight=40 icon="\uf163" block="meter" 
+//% color=#6070c0 weight=40 icon="\uf163" block="Meter" 
 namespace meter {
     let styleIs: number = digitStyle;
     let mapSet: number[] = digitMaps; // array of frame bit-maps
     let bound: number = digitBound;   // highest frame-index
     let fromValue: number = 0;     // the user's start value
-    let uptoValue: number = 0;     // the user's end $value
+    let uptoValue: number = 99;    // the user's end value
     let valueNow: number = 0;      // the user's latest value
 
     /* We save the bit-maps of the pixels currently lit, and needing to be lit:
@@ -248,17 +248,38 @@ namespace meter {
 
     // EXPORTED USER INTERFACES  
 
-    //% block="Use digital meter to indicate values from 0 to 99" 
-    //% weight=100 
-    export function digital() {
-        styleIs = digitStyle;
-        fromValue = 0;
-        uptoValue = 99;
-        mapSet = digitMaps; // NOTE: the 10 numeric frames!
-        bound = digitBound; // ...combine to allow 100 values
-        reset();
+    /** 
+     *  Show new value for meter (immediately, or adjusting gradually over time)
+     */
+    //% block="show meter value= $value || , taking $ms ms" 
+    //% inlineInputMode=inline
+    //% expandableArgumentMode="enabled"
+    //% weight=100
+    export function show(value: number, ms = 0) {
+        stop(); // cease any ongoing animation (leaves any current litFrame lit)
+        finalFrame = mapToFrame(value, fromValue, uptoValue, 0, bound);
+        finalFrame = fixRange(finalFrame, 0, bound); // NOTE: may set rangeFixed!
+        flashError = rangeFixed; // if so, remember the fact
+        firstFrame = litFrame; // the inherited start-frame (may be -1 if none)
+        if ((ms > 50)       // enough time to adjust gradually?
+            && (litFrame != -1) // and there is a current reading?
+            && (finalFrame != firstFrame)) { // ...that differs?
+            // passes all sanity checks
+            adjusting = true;     // adjustment is feasible
+            when = input.runningTime();
+            then = when + ms;
+            tick = Math.round(ms / Math.abs(firstFrame - finalFrame));
+        } else {
+            adjusting = false;     // adjustment is infeasible...
+            showFrame(finalFrame); // so just show final target frame directly
+        }
+        // perform any required progressive adjustment or error-flashing as a background task
+        control.inBackground(function () { animate() })
     }
 
+    /**
+     * Choose a non-numeric visual indicator for showing future values
+     */
     //% block="Use %choice meter to show values from $start to $limit" 
     //% start.defl=0
     //% limit.defl=20
@@ -297,36 +318,24 @@ namespace meter {
         reset();
     }
 
-    /** 
-     *  Show new value for meter immediately, or adjusting gradually
-    */
-    //% block="show meter value= $value || , taking $ms ms" 
-    //% inlineInputMode=inline
-    //% expandableArgumentMode="enabled"
-    //% weight=80
-    export function show(value: number, ms = 0) {
-        stop(); // cease any ongoing animation (leaves any current litFrame lit)
-        finalFrame = mapToFrame(value, fromValue, uptoValue, 0, bound);
-        finalFrame = fixRange(finalFrame, 0, bound); // NOTE: may set rangeFixed!
-        flashError = rangeFixed; // if so, remember the fact
-        firstFrame = litFrame; // the inherited start-frame (may be -1 if none)
-        if ((ms > 50)       // enough time to adjust gradually?
-            && (litFrame != -1) // and there is a current reading?
-            && (finalFrame != firstFrame)) { // ...that differs?
-            // passes all sanity checks
-            adjusting = true;     // adjustment is feasible
-            when = input.runningTime();
-            then = when + ms;
-            tick = Math.round(ms / Math.abs(firstFrame - finalFrame));
-        } else {
-            adjusting = false;     // adjustment is infeasible...
-            showFrame(finalFrame); // so just show final target frame directly
-        }
-        // perform any required progressive adjustment or error-flashing as a background task
-        control.inBackground(function () { animate() })
+    /**
+     * Use the digital counter for showing future values
+     */
+    //% block="Use digital meter to indicate values from 0 to 99"
+    //% weight=80 
+    export function digital() {
+        styleIs = digitStyle;
+        fromValue = 0;
+        uptoValue = 99;
+        mapSet = digitMaps; // NOTE: the 10 numeric frames...
+        bound = digitBound; // ...combine to allow 100 values
+        reset();
     }
 
-    //% block="reset meter" 
+    /**
+     * Reset the meter to the starting value
+     */
+    //% block="reset meter"
     //% weight=30 
     export function reset() {
         stop();
@@ -334,6 +343,9 @@ namespace meter {
         showFrame(0);
     }
 
+    /**
+     * Wait for animated reading to settle
+     */
     //% block="wait for animation" 
     //% weight=20 
     export function wait() {
@@ -341,7 +353,10 @@ namespace meter {
             pause(20);
         }
     }
-
+    
+    /**
+     * Interrupt any background animation or flashing
+     */
     //% block="stop animation" 
     //% weight=10 
     export function stop() {
@@ -354,6 +369,4 @@ namespace meter {
             basic.pause(2 * flashGap); // ensure it has happened
         }
     }
-
-
 }
