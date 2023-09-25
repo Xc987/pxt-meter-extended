@@ -1,5 +1,5 @@
 ```package
-meter=github:grandpabond/pxt-meters
+pxt-meters=github:grandpabond/pxt-meters
 ```
 # meter --- Adding values to your project!
 
