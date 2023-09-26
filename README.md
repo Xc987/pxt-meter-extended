@@ -105,59 +105,121 @@ This block stops any background animated adjustment immediately, wherever it has
 
 # Examples
 
-## Clicker
-buttons --> DIGITAL count
 
-#
 ## Thermometer
-This code shows the current temperature (constrained to the range 0 degrees to 99 degrees):
+This code uses the default digital meter to show the current microbit temperature (constrained to the range 0 degrees to 99 degrees):
+
 ```block
 basic.forever(function () {
     meter.show(input.temperature());
     basic.pause(5000);
-})
+});
 ```
 
-## Compass
-The following code uses the rotary ``||meter:DIAL||`` style to show a compass needle that (should) always point North:
+## Clicker
+A simple use of the default digital meter lets you count things up (with Button A) and down (with Button B). Possibly useful for counting people at an event; or cars in a carpark; or even in sheep in a pen, though the limit is 99.
 
-    (Wait till init tilting finished first)
 ```block
-meter.use(STYLES.DIAL, 0, 360);
+let count = 0;
+
+input.onButtonPressed(Button.A, function () {
+    count += 1;
+    if (count > 100) {
+        count = 100;
+    }
+    meter.show(count);
+});
+
+input.onButtonPressed(Button.B, function () {
+    count += -1;
+    if (count < -1) {
+        count = -1;
+    };
+    meter.show(count);
+});
+```
+
+## Bangometer
+This example monitors jolts and knocks using the ``||meter:SPIRAL||`` indicator. The wound-up size of the display shows the strength of each bang (up to a maximun of 1000 milli-gravities). The indicator is then unwound back to zero over a time of 1.5 seconds. The ``||meter:BLOB||`` style would be equally appropriate, though with fewer distinct displays.
+
+```block
+meter.use(STYLES.SPIRAL, 0, 1000);
+
+input.onGesture(Gesture.ThreeG, function () {
+    meter.show(input.acceleration(Dimension.Strength));
+    meter.show(0, 1500);
+});
+```
+	 
+## Compass
+The following code uses the rotary ``||meter:DIAL||`` style to show a compass needle that (should) always point North. Note that the dial uses a reversed scale counting from 360 degrees down to zero. 
+(You will first have to tilt the screen as instructed to initialise the magnetometer)
+
+```block
+input.calibrateCompass();
+basic.pause(2000);
+meter.use(STYLES.DIAL, 360, 0);
 
 basic.forever(function () {
-    meter.show(360 - input.compassHeading())
+    meter.show(input.compassHeading());
     basic.pause(500);
-})
+});
 ```
-
 
 ## Noise Meter
-The following code uses the ``||meter:BAR||`` style to show peak noise levels. 
-
-Sound meter: sound-level--> BAR (decaying)
-      Stop() on fresh sound.
+The following code uses the ``||meter:BAR||`` style to show peak noise levels, sampled four times a second. The signal uses a rolling average, so gradually dies away over time. If it's too loud the indicator will flash to show a range error.
 
 ```block
-meter.use(STYLES.BAR, 0, 360);
-let average = 80;
+meter.use(STYLES.BAR, 0, 100);
+let signal = 0;
 
 basic.forever(function () {
-    meter.show(360 - input.compassHeading())
-    basic.pause(500);
+    signal = (signal + input.soundLevel()) / 2;
+    meter.show(signal);
+    basic.pause(250);
 })
 ```
 
 ## Water Spill
-accel -->TIDAL
-    Add gx + by for 45-degree tilt
+This example uses the ``||meter:TIDAL||`` indicator to simulate spilling water from the bottom left to the top right as you tilt the microbit. A half-second animation delay makes the movement smoother.
 
+```block
+meter.use(STYLES.TIDAL, -30, 30);
 
-## Bangometer
-accel-->SPIRAL (decaying)
-     Uses stop() after knock input.
+basic.forever(function () {
+    meter.show(input.rotation(Rotation.Roll) - input.rotation(Rotation.Pitch), 500);
+    basic.pause(1000);
+});
+```
+
+## Plumb-line
+Another use of the accelerometer maps the Pitch rotation (displaced by a right-angle) onto the ``||meter:DIAL||`` indicator, with a reversed range, so that the needle always hangs downwards.
+
+```block
+meter.use(STYLES.DIAL, 360, 0);
+
+basic.forever(function () {
+    meter.show((input.rotation(Rotation.Pitch) + 442) % 360);
+    basic.pause(1000);
+});
+```
+
 # Lie-detector
-pad conduction-->NEEDLE (AVC)
+This final example uses the ``||meter:NEEDLE||`` indicator to monitor the capacitive input on Pin2 of the microbit.
+The signal is a rolling average, and despite possible inputs ranging from [0 to 1023], the sensitivity has been experimentally focused on the smaller range [600 to 800].
+
+```block
+meter.use(STYLES.NEEDLE, 600, 800);
+pins.touchSetMode(TouchTarget.P2, TouchTargetMode.Capacitive);
+let signal = 700;
+
+basic.forever(function () {
+    signal = (signal + pins.analogReadPin(AnalogPin.P2)) / 2;
+    meter.show(signal);
+    basic.pause(500);
+});
+```
+
 
 
 
