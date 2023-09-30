@@ -256,7 +256,9 @@ namespace meter {
     // EXPORTED USER INTERFACES  
 
     /** 
-     *  Show new value for meter (immediately, or adjusting gradually over time)
+     *  Show a new value for meter (immediately, or adjusting gradually over time)
+     * @param value new value to be shown, eg: 66
+     * @param ms (optional) settling time in millisecs for the new value, eg: 250
      */
     //% block="show meter value= $value || , taking $ms ms" 
     //% inlineInputMode=inline
@@ -286,9 +288,10 @@ namespace meter {
 
     /**
      * Choose a non-numeric visual indicator for showing future values
-     *  @param style: meter.Styles = choice of indicator style
-     *  @param start: number = the value that maps to the bottom reading
-     *  @param limit: number = the value that maps to the top reading
+     * together with the range of values it will indicate
+     * @param style your choice of indicator style eg: meter.Style.Bar
+     * @param start the value that maps to the bottom reading eg: 32
+     * @param limit the value that maps to the top reading eg: 212
      */
     //% block="Use $style meter to show values from $start to $limit" 
     //% start.defl=0

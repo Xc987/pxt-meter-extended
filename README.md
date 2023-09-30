@@ -26,7 +26,9 @@ This block adjusts the meter to show a new reading.
 
 If you click on the "+", you can set an optional parameter:
 
-> ``||meter:ms||`` - is used to control the speed of an animated adjustment to the new value. It shows intermediate values leading to the new ``||meter:value||`` after ms millisecs.  (This background animation only occurs if ``||meter:ms||`` exceeds 50ms).
+> ``||meter:ms||`` - is used to control the settling time of an animated adjustment to the new value. 
+The meter will display intermediate values leading to the new ``||meter:value||`` after ms millisecs.  
+(This background animation only occurs if ``||meter:ms||`` exceeds 50ms).
 
 ### ~reminder
 NOTE: Any attempt to show a value that lies outside the [``||meter:start||``...``||meter:limit||``] range will be constrained 
