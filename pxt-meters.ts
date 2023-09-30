@@ -1,18 +1,4 @@
 // M E T E R S  
-enum STYLES {
-    //% block="Blob"
-    BLOB,
-    //% block="Spiral"
-    SPIRAL,
-    //% block="Bar" 
-    BAR,
-    //% block="Dial" 
-    DIAL,
-    //% block="Needle"
-    NEEDLE,
-    //% block="Tidal"
-    TIDAL
-}
 
 /* Default style is DIGITAL: a 2-digit readout from 0 to 99
     Each digit uses a 10-bit bitmap (0...1023) encoding pixels vertically
@@ -114,6 +100,15 @@ const blobBound = 7;
 
 //% color=#6070c0 weight=40 icon="\uf163" block="Meter" 
 namespace meter {
+    export enum Styles {
+        Blob,
+        Spiral,
+        Bar,
+        Dial,
+        Needle,
+        Tidal
+    }
+
     let styleIs: number = digitStyle;
     let mapSet: number[] = digitMaps; // array of frame bit-maps
     let bound: number = digitBound;   // highest frame-index
@@ -246,6 +241,18 @@ namespace meter {
         }
     }
 
+    // terminate any background activity
+    function stop() {
+        if (adjusting) {
+            adjusting = false; //  prematurely stop background adjustment
+            basic.pause(tick); // ensure it has happened
+        }
+        if (flashError) {
+            flashError = false; // stop any error-flashing
+            basic.pause(2 * flashGap); // ensure it has happened
+        }
+    }
+
     // EXPORTED USER INTERFACES  
 
     /** 
@@ -279,37 +286,40 @@ namespace meter {
 
     /**
      * Choose a non-numeric visual indicator for showing future values
+     *  @param style: meter.Styles = choice of indicator style
+     *  @param start: number = the value that maps to the bottom reading
+     *  @param limit: number = the value that maps to the top reading
      */
-    //% block="Use %choice meter to show values from $start to $limit" 
+    //% block="Use $style meter to show values from $start to $limit" 
     //% start.defl=0
     //% limit.defl=20
     //% weight=90
-    export function use(style: STYLES, start: number, limit: number) {
+    export function use(style: Styles, start: number, limit: number) {
         styleIs = style;
         fromValue = start;
         uptoValue = limit;
         switch (style) {
-            case STYLES.DIAL:
+            case Styles.Dial:
                 mapSet = dialMaps;
                 bound = dialBound;
                 break;
-            case STYLES.NEEDLE:
+            case Styles.Needle:
                 mapSet = needleMaps;
                 bound = needleBound;
                 break;
-            case STYLES.BAR:
+            case Styles.Bar:
                 mapSet = barMaps;
                 bound = barBound;
                 break;
-            case STYLES.BLOB:
+            case Styles.Blob:
                 mapSet = blobMaps;
                 bound = blobBound;
                 break;
-            case STYLES.SPIRAL:
+            case Styles.Spiral:
                 mapSet = spiralMaps;
                 bound = spiralBound;
                 break;
-            case STYLES.TIDAL:
+            case Styles.Tidal:
                 mapSet = tidalMaps;
                 bound = tidalBound;
                 break;
@@ -351,22 +361,6 @@ namespace meter {
     export function wait() {
         while (adjusting) {
             pause(20);
-        }
-    }
-    
-    /**
-     * Interrupt any background animation or flashing
-     */
-    //% block="stop animation" 
-    //% weight=10 
-    export function stop() {
-        if (adjusting) {
-            adjusting = false; //  prematurely stop background adjustment
-            basic.pause(tick); // ensure it has happened
-        }
-        if (flashError) {
-            flashError = false; // stop any error-flashing
-            basic.pause(2 * flashGap); // ensure it has happened
         }
     }
 }

@@ -14,14 +14,14 @@ function doTest(which: number) {
             break;
 
         case 1:  // fractional, adjusting over 9 seconds
-            meter.use(STYLES.SPIRAL, 0, 1.0);
+            meter.use(meter.Styles.Spiral, 0, 1.0);
             meter.show(1.0, 9000);
             meter.wait();
             meter.show(0, 500);
             break;
 
         case 2:  // reversed
-            meter.use(STYLES.BLOB, 50, 0);
+            meter.use(meter.Styles.Blob, 50, 0);
             basic.pause(1000);
             for (let i = 0; go && (i < 100); i++) {
                 meter.show(i);
@@ -31,7 +31,7 @@ function doTest(which: number) {
             break;
 
         case 3: // negative values
-            meter.use(STYLES.BAR, 0, -99);
+            meter.use(meter.Styles.Bar, 0, -99);
             basic.pause(1000);
             for (let i = 0; go && (i < 100); i++) {
                 meter.show(-i);
@@ -41,7 +41,7 @@ function doTest(which: number) {
             break;
 
         case 4:  // partial range
-            meter.use(STYLES.DIAL, 30, 70);
+            meter.use(meter.Styles.Dial, 30, 70);
             basic.pause(1000);
             for (let i = 0; go && (i < 100); i++) {
                 meter.show(i);
@@ -51,7 +51,7 @@ function doTest(which: number) {
             break;
 
         case 5:  // angle
-            meter.use(STYLES.NEEDLE, 0, 90);
+            meter.use(meter.Styles.Needle, 0, 90);
             basic.pause(1000);
             for (let i = 0; go && (i < 100); i++) {
                 meter.show(i);
@@ -61,7 +61,7 @@ function doTest(which: number) {
             break;
 
         case 6: // negative partial range
-            meter.use(STYLES.TIDAL, -4.5, -9.5);
+            meter.use(meter.Styles.Tidal, -4.5, -9.5);
             basic.pause(1000);
             for (let i = 0; go && (i < 100); i++) {
                 meter.show(-i / 10);
@@ -72,7 +72,7 @@ function doTest(which: number) {
 
         case 7:
             // adjustments
-            meter.use(STYLES.BAR, 0, 99);
+            meter.use(meter.Styles.Bar, 0, 99);
             basic.pause(1000);
             meter.show(75, 500);
             meter.wait();
@@ -99,7 +99,7 @@ function doTest(which: number) {
 
         case 8:
             // point upwards for 20 sec
-            meter.use(STYLES.DIAL, 0, 360);
+            meter.use(meter.Styles.Dial, 0, 360);
             let gx = 0;
             let gy = 0;
             let angle = 0;
@@ -115,7 +115,7 @@ function doTest(which: number) {
 
         case 9:
             // noise-meter for 20 sec
-            meter.use(STYLES.BAR, 0, 200);
+            meter.use(meter.Styles.Bar, 0, 200);
             for (let i = 0; go && (i < 100); i++) {
                 meter.show(input.soundLevel());
                 basic.pause(200);
