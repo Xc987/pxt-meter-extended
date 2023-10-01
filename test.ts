@@ -149,10 +149,10 @@ basic.forever(function () {
         if (input.buttonIsPressed(Button.AB)) {
             choosing = false; // kick off chosen test on next iteration
         } else {
-            if (input.buttonIsPressed(Button.A) && (choice < maxTest)) {
+            if (input.buttonIsPressed(Button.B) && (choice < maxTest)) {
                 choice++;
             }
-            if (input.buttonIsPressed(Button.B) && (choice > 0)) {
+            if (input.buttonIsPressed(Button.A) && (choice > 0)) {
                 choice--;
             }
             basic.showNumber(choice)
@@ -161,7 +161,7 @@ basic.forever(function () {
     } else {
         //go for it...
         setupTest(choice);
-        while (~input.isGesture(Gesture.LogoDown)) {
+        while (~input.logoIsPressed()) {
             updateTest(choice);
         };
         // turning it over halts current test
