@@ -128,8 +128,9 @@ namespace meter {
     let rangeFixed = false;    // notify overflow/underflow
     let flashError = false;    // finalFrame was out of range before correction
     let flashUnlit = false;    // distinguish lit/unlit phase of flashing
-    let adjusting = false; // true while adjusting intermediate frames
-    let flashing = false;  // true while indicating frameError
+    let animating = false; // true while animate() fiber is running in inBackground
+    let adjusting = false; // true while interpolating intermediate frames
+    let flashing = false;  // true while indicating a frameError
     let firstFrame = 0;    // animation start-value
     let finalFrame = 0;    // animation end-value
     let when = 0;          // animation starting time
@@ -201,7 +202,7 @@ namespace meter {
     function clearFrame() {
         basic.clearScreen();
         litMap = 0;
-        // litFrame = -1;
+        litFrame = -1;
     }
 
     function flash(): void {
@@ -218,47 +219,50 @@ namespace meter {
     // perform background tasks: adjusting the meter gradually and/or flashing range-error
     function animate(): void {
         while (adjusting) {
-            let now = input.runningTime();
-            // can't predict interrupts, so: where should we have got to by now?
+        // NOTE: "then" was the target finish time for adjustment. 
+        // That time may already have passed if this fiber got delayed by other 
+        // unpredictable scheduled work, so code defensively...
+            let now = Math.min(input.runningTime(), then);
+            //  work out where we should have got to by "now"
             let nextFrame = mapToFrame(now, when, then, firstFrame, finalFrame);
-            // NOTE: will exceed finalFrame if we're late to complete
-            nextFrame = fixRange(nextFrame, 0, bound); // could set rangeFixed
+            nextFrame = fixRange(nextFrame, 0, bound);
             showFrame(nextFrame);
-            if (nextFrame == finalFrame) {  // we've arrived!
+            if (nextFrame == finalFrame) {
                 adjusting = false;
             } else {
-                pause(tick);
+                pause(tick); // cedes control to scheduler for a bit
             }
         }
+        if (litFrame != finalFrame) {
         // if animations got halted prematurely, litFrame shows where we got to
         // which will always be within bounds, so forget about flashing
-        if (litFrame != finalFrame) {
             flashError = false;
         }
-        // now any adjusting is complete, start flashing range-error if needed
-        while (flashError || flashUnlit) {
-            flash(); // always leave finalFrame lit
+        // now that any adjusting is complete, start flashing any range-error 
+        while (flashError || flashUnlit) { // always leave litFrame lit
+            flash();
         }
     }
 
-    // terminate any background activity
+    // terminate any background activity (adjusting or flashing) and wait long 
+    // enough for the animate() fiber to have finished
     function stop() {
         if (adjusting) {
-            adjusting = false; //  prematurely stop background adjustment
-            basic.pause(tick); // ensure it has happened
+            adjusting = false;
+            basic.pause(tick);
         }
         if (flashError) {
-            flashError = false; // stop any error-flashing
-            basic.pause(2 * flashGap); // ensure it has happened
+            flashError = false; // stop any error-flashing (but with litFrame lit)
+            basic.pause(2 * flashGap);
         }
     }
 
     // EXPORTED USER INTERFACES  
 
     /** 
-     *  Show a new value for meter (immediately, or adjusting gradually over time)
-     * @param value new value to be shown, eg: 66
-     * @param ms (optional) settling time in millisecs for the new value, eg: 250
+     * Show a new value for meter (immediately, or adjusting gradually over time)
+     * @param value -new value to be shown, eg: 66
+     * @param ms -(optional) settling time in millisecs for the new value, eg: 250
      */
     //% block="show meter value= $value || , taking $ms ms" 
     //% inlineInputMode=inline
@@ -268,7 +272,7 @@ namespace meter {
         stop(); // cease any ongoing animation (leaves any current litFrame lit)
         finalFrame = mapToFrame(value, fromValue, uptoValue, 0, bound);
         finalFrame = fixRange(finalFrame, 0, bound); // NOTE: may set rangeFixed!
-        flashError = rangeFixed; // if so, remember the fact
+        //flashError = rangeFixed; // if so, remember the fact
         firstFrame = litFrame; // the inherited start-frame (may be -1 if none)
         if ((ms > 50)       // enough time to adjust gradually?
             && (litFrame != -1) // and there is a current reading?
@@ -283,6 +287,7 @@ namespace meter {
             showFrame(finalFrame); // so just show final target frame directly
         }
         // perform any required progressive adjustment or error-flashing as a background task
+        animating = true;
         control.inBackground(function () { animate() })
     }
 
@@ -301,6 +306,7 @@ namespace meter {
         styleIs = style;
         fromValue = start;
         uptoValue = limit;
+        clear();
         switch (style) {
             case Styles.Dial:
                 mapSet = dialMaps;
@@ -328,7 +334,6 @@ namespace meter {
                 break;
         }
         styleIs = style;
-        reset();
     }
 
     /**
@@ -337,23 +342,22 @@ namespace meter {
     //% block="Use digital meter to indicate values from 0 to 99"
     //% weight=80 
     export function digital() {
+        clear();
         styleIs = digitStyle;
         fromValue = 0;
         uptoValue = 99;
         mapSet = digitMaps; // NOTE: the 10 numeric frames...
         bound = digitBound; // ...combine to allow 100 values
-        reset();
     }
 
     /**
-     * Reset the meter to the starting value
+     * Clear the meter off the display
      */
-    //% block="reset meter"
+    //% block="clear meter"
     //% weight=30 
-    export function reset() {
+    export function clear() {
         stop();
         clearFrame();
-        showFrame(0);
     }
 
     /**

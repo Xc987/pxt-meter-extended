@@ -1,48 +1,3 @@
-/* 
-Thermometer:
-   uses the default digital meter to show the current microbit temperature
-   (constrained to the range 0 degrees to 99 degrees)
-
-Clicker:
-   A simple use of the default digital meter lets you count things up
-   (with Button A) and down(with Button B).  Possibly useful for counting
-   people at an event; or cars in a carpark; or even in sheep in a pen, 
-   though the limit is 99.
-
-Bangometer:
-  This example monitors jolts and knocks using the Spiral indicator.
-  The wound-up size of the display shows the strength of each bang
-  (up to a maximun of 1000 milli-gravities). The indicator is then 
-  unwound back to zero over a time of 1.5 seconds.
-
-Compass:
-  The following code uses the rotary Dial style to show a compass needle that
-  (should) always point North.Note that the dial uses a reversed scale 
-  counting from 360 degrees down to zero. (You will first have to tilt the screen 
-  as instructed to initialise the magnetometer)
-
-Noise Meter:
-  The following code uses the Bar style to show peak noise levels, sampled 
-  four times a second.The signal uses a rolling average, so gradually dies away 
-  over time. If it's too loud the indicator will flash to show a range error.
-
-Water Spill:
-  This example uses the Tidal indicator to simulate spilling water from the 
-  bottom left to the top right as you tilt the microbit. A half-second animation 
-  delay makes the movement smoother.
-
-Plumb-line:
-  Another use of the accelerometer maps the Pitch rotation(displaced by a 
-  right-angle) onto the Dial indicator, with a reversed range, so that the 
-  needle always hangs downwards.
-  
-Lie-detector
-  This final example uses the Needle indicator to monitor the capacitive input
-  on Pin2 of the microbit. The signal is a rolling average, and despite 
-  possible inputs ranging from[0.. 1023], the sensitivity has been 
-  experimentally focused onto a smaller working range of[600.. 800].
-*/
-
 
 enum Tests {
     Thermometer,
@@ -57,6 +12,7 @@ enum Tests {
 const maxTest = 8;
 
 function setupTest(test: number) {
+    meter.clear();
     switch (test) {
         case Tests.Thermometer:
             meter.digital();
@@ -98,12 +54,6 @@ function updateTest(test: number) {
             basic.pause(5000);
             break;
         case Tests.Clicker:
-            if (input.buttonIsPressed(Button.A) && (count < 101)) {
-                count++;
-            }
-            if (input.buttonIsPressed(Button.B) && (count > -2)) {
-                count--;
-            }
             meter.show(count);
             break;
         case Tests.Bangometer:
@@ -180,9 +130,8 @@ input.onButtonPressed(Button.AB, function() {
 });
 
 input.onLogoEvent(TouchButtonEvent.Pressed, function() {
+    meter.clear();
     choosing = true;
-    meter.reset();
     music.tonePlayable(Note.C, music.beat(BeatFraction.Sixteenth))
     basic.showNumber(choice);
-
 })
