@@ -137,36 +137,52 @@ function updateTest(test: number) {
     }
 }
 
-
 let choice = 0;
 let choosing = true;
 let count = 0;
 let signal = 0;
+basic.showNumber(choice);
 
-basic.forever(function () {
+input.onButtonPressed(Button.A, function () {
     if (choosing) {
-        // listen to buttons
-        if (input.buttonIsPressed(Button.AB)) {
-            choosing = false; // kick off chosen test on next iteration
-        } else {
-            if (input.buttonIsPressed(Button.B) && (choice < maxTest)) {
-                choice++;
-            }
-            if (input.buttonIsPressed(Button.A) && (choice > 0)) {
-                choice--;
-            }
-            basic.showNumber(choice)
-            pause(250);
+        if (choice > 0) { 
+            choice--;
+            basic.showNumber(choice);
         }
     } else {
-        //go for it...
+        if (choice = Tests.Clicker) {
+            if (count > -1) { count-- }
+        }
+    }
+});
+
+input.onButtonPressed(Button.B, function() {
+    if (choosing) {
+        if (choice < maxTest) { 
+            choice++;
+            basic.showNumber(choice);
+        }
+    } else {
+        if (choice = Tests.Clicker) {
+            if (count < 101) { count++ }
+        }
+    }
+});
+
+input.onButtonPressed(Button.AB, function() {
+    if (choosing) {
+        choosing = false;
         setupTest(choice);
         while (~input.logoIsPressed()) {
             updateTest(choice);
         };
-        // turning it over halts current test
-        meter.reset();
-        music.tonePlayable(Note.C, music.beat(BeatFraction.Sixteenth))
-        choosing = true;
-    }
+    } // else ignore
 });
+
+input.onLogoEvent(TouchButtonEvent.Pressed, function() {
+    choosing = true;
+    meter.reset();
+    music.tonePlayable(Note.C, music.beat(BeatFraction.Sixteenth))
+    basic.showNumber(choice);
+
+})
