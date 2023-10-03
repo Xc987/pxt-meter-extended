@@ -57,8 +57,9 @@ function updateTest(test: number) {
             meter.show(count);
             break;
         case Tests.Bangometer:
-            if (input.isGesture(Gesture.ThreeG)) {
-                meter.show(input.acceleration(Dimension.Strength));
+            signal = input.acceleration(Dimension.Strength)
+            if (signal > 300) {
+                meter.show(signal);
                 meter.show(0, 1500);
             }
             break;
@@ -86,12 +87,22 @@ function updateTest(test: number) {
             break;
     }
 }
-
+control.waitForEvent(0, 0)
 let choice = 0;
 let choosing = true;
 let count = 0;
 let signal = 0;
 basic.showNumber(choice);
+// to remove scheduling issues, use events for button-checking
+
+if (choosing) {
+        choosing = false;
+        setupTest(choice);
+        // kick off background 
+        while (~(input.logoIsPressed() || choosing)) {
+            updateTest(choice);
+        };
+    } // else ignore
 
 input.onButtonPressed(Button.A, function () {
     if (choosing) {
@@ -120,18 +131,12 @@ input.onButtonPressed(Button.B, function() {
 });
 
 input.onButtonPressed(Button.AB, function() {
-    if (choosing) {
-        choosing = false;
-        setupTest(choice);
-        while (~input.logoIsPressed()) {
-            updateTest(choice);
-        };
-    } // else ignore
+ 
 });
 
 input.onLogoEvent(TouchButtonEvent.Pressed, function() {
-    meter.clear();
     choosing = true;
+    meter.clear();
     music.tonePlayable(Note.C, music.beat(BeatFraction.Sixteenth))
     basic.showNumber(choice);
 })
