@@ -129,8 +129,6 @@ namespace meter {
     let flashError = false;    // finalFrame was out of range before correction
     let flashUnlit = false;    // distinguish lit/unlit phase of flashing
     let animating = false; // true while animate() fiber is running in inBackground
-    let adjusting = false; // true while interpolating intermediate frames
-    let flashing = false;  // true while indicating a frameError
     let firstFrame = 0;    // animation start-value
     let finalFrame = 0;    // animation end-value
     let when = 0;          // animation starting time
@@ -205,55 +203,55 @@ namespace meter {
         litFrame = -1;
     }
 
-    function flash(): void {
-        basic.pause(flashGap);
-        if (litMap != 0) {
-            clearFrame();
-            flashUnlit = true; // forces re-display when flashing interrupted
-        } else {
-            showFrame(finalFrame);
-            flashUnlit = false;
-        }
-    }
 
-    // perform background tasks: adjusting the meter gradually and/or flashing range-error
+    // Perform background tasks: adjust the meter (maybe stepwise)
+    // and when finalFrame reached, flash if range-error signalled
+    // Be prepared to terminate prematurely
     function animate(): void {
-        while (adjusting) {
-        // NOTE: "then" was the target finish time for adjustment. 
-        // That time may already have passed if this fiber got delayed by other 
-        // unpredictable scheduled work, so code defensively...
-            let now = Math.min(input.runningTime(), then);
-            //  work out where we should have got to by "now"
-            let nextFrame = mapToFrame(now, when, then, firstFrame, finalFrame);
-            nextFrame = fixRange(nextFrame, 0, bound);
-            showFrame(nextFrame);
-            if (nextFrame == finalFrame) {
-                adjusting = false;
+        while (animating) {
+            if (litFrame != finalFrame) {
+    // NOTE: "then" was the target finish time for adjustment. 
+    // That time may already have passed if this fiber got delayed by other 
+    // unpredictable scheduled work, so code defensively...
+                let now = Math.min(input.runningTime(), then);
+                //  work out where we should have got to by "now"
+                let nextFrame = mapToFrame(now, when, then, firstFrame, finalFrame);
+                nextFrame = fixRange(nextFrame, 0, bound);
+                showFrame(nextFrame);
+                if (nextFrame != finalFrame) {
+                    pause(tick); // cede control to scheduler for a bit
+                }
             } else {
-                pause(tick); // cedes control to scheduler for a bit
+    // now that any adjusting is complete, start flashing any range-error 
+                if (flashError) {
+                    basic.pause(flashGap);
+                    if (litMap != 0) {
+                        clearFrame();
+                        flashUnlit = true; // forces re-display when flashing interrupted
+                    } else {
+                        showFrame(finalFrame);
+                        flashUnlit = false;
+                    }
+                } else {
+                    animating = false; // all done!
+                }
             }
-        }
-        if (litFrame != finalFrame) {
-        // if animations got halted prematurely, litFrame shows where we got to
-        // which will always be within bounds, so forget about flashing
-            flashError = false;
-        }
-        // now that any adjusting is complete, start flashing any range-error 
-        while (flashError || flashUnlit) { // always leave litFrame lit
-            flash();
-        }
+        } 
     }
 
     // terminate any background activity (adjusting or flashing) and wait long 
-    // enough for the animate() fiber to have finished
+    // enough for the animate() fiber to have wakened, noticed and finished
     function stop() {
-        if (adjusting) {
-            adjusting = false;
-            basic.pause(tick);
-        }
-        if (flashError) {
-            flashError = false; // stop any error-flashing (but with litFrame lit)
-            basic.pause(2 * flashGap);
+        if (animating) {
+            animating = false;
+            basic.pause(tick); // ensure background fiber has woken up...
+            if (flashError ) {
+                basic.pause(flashGap); // ... really woken up!
+                if (flashUnlit) {
+                    showFrame(finalFrame); // ensure finalFrame is visible
+                }
+                flashError = false; 
+            }
         }
     }
 
@@ -272,21 +270,16 @@ namespace meter {
         stop(); // cease any ongoing animation (leaves any current litFrame lit)
         finalFrame = mapToFrame(value, fromValue, uptoValue, 0, bound);
         finalFrame = fixRange(finalFrame, 0, bound); // NOTE: may set rangeFixed!
-        //flashError = rangeFixed; // if so, remember the fact
+        flashError = rangeFixed; // if so, remember the fact
         firstFrame = litFrame; // the inherited start-frame (may be -1 if none)
-        if ((ms > 50)       // enough time to adjust gradually?
-            && (litFrame != -1) // and there is a current reading?
-            && (finalFrame != firstFrame)) { // ...that differs?
-            // passes all sanity checks
-            adjusting = true;     // adjustment is feasible
-            when = input.runningTime();
-            then = when + ms;
-            tick = Math.round(ms / Math.abs(firstFrame - finalFrame));
+        when = input.runningTime();
+        then = when + ms;
+        if (finalFrame == firstFrame) {
+            tick = 0; 
         } else {
-            adjusting = false;     // adjustment is infeasible...
-            showFrame(finalFrame); // so just show final target frame directly
+            tick = Math.round(ms / Math.abs(finalFrame - firstFrame));      
         }
-        // perform any required progressive adjustment or error-flashing as a background task
+        // use background task to adjust display, flashing final frame if needed 
         animating = true;
         control.inBackground(function () { animate() })
     }
@@ -333,7 +326,6 @@ namespace meter {
                 bound = tidalBound;
                 break;
         }
-        styleIs = style;
     }
 
     /**
@@ -358,16 +350,5 @@ namespace meter {
     export function clear() {
         stop();
         clearFrame();
-    }
-
-    /**
-     * Wait for animated reading to settle
-     */
-    //% block="wait for animation" 
-    //% weight=20 
-    export function wait() {
-        while (adjusting) {
-            pause(20);
-        }
     }
 }

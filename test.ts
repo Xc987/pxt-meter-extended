@@ -87,12 +87,6 @@ function updateTest(test: number) {
     }
 }
 
-let choice = 0;
-let choosing = true;
-let count = 0;
-let signal = 0;
-basic.showNumber(choice);
-
 input.onButtonPressed(Button.A, function () {
     if (choosing) {
         if (choice > 0) { 
@@ -121,17 +115,24 @@ input.onButtonPressed(Button.B, function() {
 
 input.onButtonPressed(Button.AB, function() {
     if (choosing) {
+        setupTest(choice); // initiate test
         choosing = false;
-        setupTest(choice);
-        while (~input.logoIsPressed()) {
-            updateTest(choice);
-        };
-    } // else ignore
+    } else {
+        meter.clear(); // terminate test
+        music.tonePlayable(Note.C, music.beat(BeatFraction.Sixteenth))
+        basic.showNumber(choice);
+        choosing = true;
+    }
 });
 
 input.onLogoEvent(TouchButtonEvent.Pressed, function() {
-    meter.clear();
-    choosing = true;
-    music.tonePlayable(Note.C, music.beat(BeatFraction.Sixteenth))
-    basic.showNumber(choice);
 })
+
+let choice = 0;
+let choosing = true;
+let count = 0;
+let signal = 0;
+basic.showNumber(choice);
+while (true) {  // keep iterating...
+    updateTest(choice);
+}
