@@ -201,6 +201,10 @@ namespace meter {
     // (Sleeps between interations, but must be prepared to terminate prematurely)
     function animate(): void {
         while (animating) {
+            if (litFrame == -1) { // (NOTE: on first use litFrame will be -1)
+                showFrame(finalFrame);
+                litFrame = finalFrame;
+            }       
             if (litFrame != finalFrame) {
     // NOTE: "then" was the target finish time for adjustment. 
     // That time may already have passed if this fiber got delayed by other 
@@ -211,21 +215,19 @@ namespace meter {
                 nextFrame = fixRange(nextFrame, 0, bound);
                 showFrame(nextFrame);
                 if (nextFrame != finalFrame) {
-                    pause(tick); // unless we've arrived, cede control to scheduler for a bit
+                    pause(tick); // unless we've now arrived, cede control to scheduler for a bit
                 }
-            } else {  //... we've arrived, so do we need to flash?
+            } else {  //... we've arrived, so do we need to flash or exit?
                 if (flashError) {
                     basic.pause(flashGap);
                     if (litMap != 0) {
                         basic.clearScreen();
                         litMap = 0;
-                        //flashUnlit = true; // forces re-display when flashing interrupted
                     } else {
                         showFrame(finalFrame);
-                        //flashUnlit = false;
                     }
                 } else {
-                    animating = false; // all done!
+                    animating = false; // all done, so self-terminate!
                 }
             }
         } 
