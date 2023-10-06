@@ -207,17 +207,11 @@ namespace meter {
     // Perform background tasks: adjust the meter (maybe stepwise)
     // and when finalFrame reached, flash if range-error signalled
     // Be prepared to terminate prematurely
-    function animate(first: number, final: number, period: number): void {
-        let when = input.runningTime();
-        let then = when + period;
-        let tick = 0;
-        if (final != first) {
-            tick = Math.round(period / Math.abs(final - first));
-        }
+    function animate(): void {
         while (animating) {
-            if (litFrame != final) {
+            if (litFrame != finalFrame) {
     // NOTE: "then" was the target finish time for adjustment. 
-    // That time may already have passed if this fiber has been delayed by other 
+    // That time may already have passed if this fiber got delayed by other 
     // unpredictable scheduled work, so code defensively...
                 let now = Math.min(input.runningTime(), then);
                 //  work out where we should have got to by "now"
@@ -278,10 +272,16 @@ namespace meter {
         finalFrame = fixRange(finalFrame, 0, bound); // NOTE: may set rangeFixed!
         flashError = rangeFixed; // if so, remember the fact
         firstFrame = litFrame; // the inherited start-frame (may be -1 if none)
-
+        when = input.runningTime();
+        then = when + ms;
+        if (finalFrame == firstFrame) {
+            tick = 0; 
+        } else {
+            tick = Math.round(ms / Math.abs(finalFrame - firstFrame));      
+        }
         // use background task to adjust display, flashing final frame if needed 
         animating = true;
-        control.inBackground(function () { animate(firstFrame, finalFrame, ms) })
+        control.inBackground(function () { animate() })
     }
 
     /**
