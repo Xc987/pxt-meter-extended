@@ -26,11 +26,10 @@ This block adjusts the meter to show a new reading.
 If you click on the "+", you can set an optional parameter:
 
 > ``||meter:ms||`` - is used to control the settling time of an animated adjustment to the new value. 
-The meter will display intermediate values leading to the new ``||meter:value||`` after ms millisecs.  
-(This background animation only occurs if ``||meter:ms||`` exceeds 50ms).
+The meter will display intermediate values, arriving at the new ``||meter:value||`` after ms millisecs.  
 
 ### ~reminder
-NOTE: Any attempt to show a value that lies outside the [``||meter:start||``...``||meter:limit||``] range will be constrained 
+NOTE: Any attempt to show a value that lies outside the range [``||meter:start||``...``||meter:limit||``] will be constrained 
 to the nearest bound, but will then flash to indicate the out-of-range error.
 ### ~
 
@@ -40,7 +39,7 @@ to the nearest bound, but will then flash to indicate the out-of-range error.
 meter.use(style, start, limit)
 ```
 Often the exact numeric value is less important than providing a rapid visual indication of a measurement.
-The ``||meter:use()||`` block selects one of a number of possible visual indicators:
+The ``||meter:meter.use()||`` block selects one of a number of possible visual indicators:
 
 > ``||meter:style||`` - chooses one of the indicator Styles (see below)
 
@@ -55,22 +54,22 @@ fractional values are quite OK.
 ### ~
 
 ### Indicator Styles:
-> ``||meter:Bar||``This meter style (similar to the built-in ``||led:led.plotBarGraph||`` block) fills up 
+> ``||meter:Styles.Bar||``This meter style (similar to the built-in ``||led:led.plotBarGraph||`` block) fills up 
 each row in turn from the bottom, with 1, 3, or 5 centred pixels, giving a total of 15 distinct displays.
 
-> ``||meter:Dial||``
+> ``||meter:Styles.Dial||``
 This meter style shows a short 3-pixel pointer rotating from the 12 o'clock position through 24 different angles.
   
-> ``||meter:Needle||``
+> ``||meter:Styles.Needle||``
 This meter style swings a needle centred on the top left corner from horizontal, clockwise to vertical in 17 steps.
 
-> ``||meter:Tidal||``
+> ``||meter:Styles.Tidal||``
 This meter style fills the display progressively from the bottom left to the top right in 25 steps.
 
-> ``||meter:Blob||``
+> ``||meter:Styles.Blob||``
 This meter style is a simple centred disc that grows from a single pixel to fill the screen in 7 steps. 
 
-> ``||meter:Spiral||``
+> ``||meter:Styles.Spiral||``
 This meter style is similar to the Blob, but winds round clockwise in a spiral to fill the screen in 25 steps.
 
 ## Showing numbers with the digital meter #meter-digital
@@ -80,20 +79,12 @@ meter.digital()
 ```
 Use this block to switch back to showing numerical measurements.
 
-## Resetting the meter #meter-reset
+## Hiding the meter #meter-hide
 
 ```sig
-meter.reset()
+meter.hide()
 ```
-This block clears any out-of-range flashing and resets the meter.
-
-## Synchronising with an animated adjustment #meter-wait
-
-```sig
-meter.wait()
-```
-This block suspends your code until any background animated adjustment has reached the new value.
-(Returns immediately if there is no animation going on.)
+This block stops any animation or out-of-range flashing and clears the display.
 
 # Examples
 
@@ -111,14 +102,14 @@ basic.forever(function () {
 ```
 
 ## Clicker
-A simple use of the default digital meter lets you count things up (with Button A) and down 
-(with Button B). Possibly useful for counting people at an event; or cars in a carpark; 
-or even in sheep in a pen, though the limit is 99.
+A simple use of the default digital meter lets you count things up (with Button B) and down 
+(with Button A). Possibly useful for counting people at an event; or cars in a carpark; 
+or even in sheep in a pen, though the limit is 99!
 
 ```blocks
 let count = 0;
 
-input.onButtonPressed(Button.A, function () {
+input.onButtonPressed(Button.B, function () {
     count += 1;
     if (count > 100) {
         count = 100;
@@ -126,7 +117,7 @@ input.onButtonPressed(Button.A, function () {
     meter.show(count);
 });
 
-input.onButtonPressed(Button.B, function () {
+input.onButtonPressed(Button.A, function () {
     count += -1;
     if (count < -1) {
         count = -1;
@@ -136,9 +127,9 @@ input.onButtonPressed(Button.B, function () {
 ```
 
 ## Bangometer
-This example monitors jolts and knocks using the ``||meter:Spiral||`` indicator. The wound-up size 
+This example monitors jolts and knocks using the ``||meter:Styles.Spiral||`` indicator. The wound-up size 
 of the display shows the strength of each bang (up to a maximun of 1000 milli-gravities). 
-The indicator is then unwound back to zero over a time of 1.5 seconds. The ``||meter:Blob||`` style 
+The indicator is then unwound back to zero over a time of 1.5 seconds. The ``||meter:Styles.Blob||`` style 
 would be equally appropriate, though with fewer distinct displays.
 
 ```blocks
@@ -151,9 +142,9 @@ input.onGesture(Gesture.ThreeG, function () {
 ```
 	 
 ## Compass
-The following code uses the rotary ``||meter:Dial||`` style to show a compass needle that (should) 
+The following code uses the rotary ``||meter:Styles.Dial||`` style to show a compass needle that (should) 
 always point North. Note that the dial uses a reversed scale counting from 360 degrees down to zero. 
-(You will first have to tilt the screen as instructed to initialise the magnetometer)
+(You will first have to tilt the screen as instructed to calibrate the magnetometer to its surroundings)
 
 ```blocks
 input.calibrateCompass();
@@ -167,7 +158,7 @@ basic.forever(function () {
 ```
 
 ## Noise Meter
-The following code uses the ``||meter:Bar||`` style to show peak noise levels, sampled four times a 
+The following code uses the ``||meter:Styles.Bar||`` style to show peak noise levels, sampled four times a 
 second. The signal uses a rolling average, so gradually dies away over time. If it's too loud the 
 indicator will flash to show a range error.
 
@@ -183,7 +174,7 @@ basic.forever(function () {
 ```
 
 ## Water Spill
-This example uses the ``||meter:Tidal||`` indicator to simulate spilling water from the bottom left 
+This example uses the ``||meter:Styles.Tidal||`` indicator to simulate spilling water from the bottom left 
 to the top right as you tilt the microbit. A half-second animation delay makes the movement smoother.
 
 ```blocks
@@ -197,7 +188,7 @@ basic.forever(function () {
 
 ## Plumb-line
 Another use of the accelerometer maps the Pitch rotation (displaced by a right-angle) onto the 
-``||meter:Dial||`` indicator, with a reversed range, so that the needle always hangs downwards.
+``||meter:Styles.Dial||`` indicator, with a reversed range, so that the needle always hangs downwards.
 
 ```blocks
 meter.use(meter.Styles.Dial, 360, 0);
@@ -209,7 +200,7 @@ basic.forever(function () {
 ```
 
 # Lie-detector
-This final example uses the ``||meter:Needle||`` indicator to monitor the capacitive input on Pin2 of the microbit.
+This final example uses the ``||meter:Styles.Needle||`` indicator to monitor the capacitive input on Pin2 of the microbit.
 
 The signal is a rolling average, and despite possible inputs ranging from [0 .. 1023], the sensitivity 
 has been experimentally focused onto a smaller working range of [600 .. 800].

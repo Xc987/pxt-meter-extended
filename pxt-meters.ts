@@ -127,7 +127,6 @@ namespace meter {
     let litFrame: number = -1; // currently displayed frame (-1 says none)
     let rangeFixed = false;    // notify overflow/underflow
     let flashError = false;    // finalFrame was out of range before correction
-    let flashUnlit = false;    // distinguish lit/unlit phase of flashing
     let animating = false; // true while animate() fiber is running in inBackground
     let firstFrame = 0;    // animation start-value
     let finalFrame = 0;    // animation end-value
@@ -197,16 +196,9 @@ namespace meter {
         }
     }
 
-    function clearFrame() {
-        basic.clearScreen();
-        litMap = 0;
-        litFrame = -1;
-    }
-
-
     // Perform background tasks: adjust the meter (maybe stepwise)
     // and when finalFrame reached, flash if range-error signalled
-    // Be prepared to terminate prematurely
+    // (Sleeps between interations, but must be prepared to terminate prematurely)
     function animate(): void {
         while (animating) {
             if (litFrame != finalFrame) {
@@ -219,18 +211,18 @@ namespace meter {
                 nextFrame = fixRange(nextFrame, 0, bound);
                 showFrame(nextFrame);
                 if (nextFrame != finalFrame) {
-                    pause(tick); // cede control to scheduler for a bit
+                    pause(tick); // unless we've arrived, cede control to scheduler for a bit
                 }
-            } else {
-    // now that any adjusting is complete, start flashing any range-error 
+            } else {  //... we've arrived, so do we need to flash?
                 if (flashError) {
                     basic.pause(flashGap);
                     if (litMap != 0) {
-                        clearFrame();
-                        flashUnlit = true; // forces re-display when flashing interrupted
+                        basic.clearScreen();
+                        litMap = 0;
+                        //flashUnlit = true; // forces re-display when flashing interrupted
                     } else {
                         showFrame(finalFrame);
-                        flashUnlit = false;
+                        //flashUnlit = false;
                     }
                 } else {
                     animating = false; // all done!
@@ -247,8 +239,8 @@ namespace meter {
             basic.pause(tick); // ensure background fiber has woken up...
             if (flashError ) {
                 basic.pause(flashGap); // ... really woken up!
-                if (flashUnlit) {
-                    showFrame(finalFrame); // ensure finalFrame is visible
+                if (litMap == 0) {
+                    showFrame(finalFrame); // ensure finalFrame is left visible
                 }
                 flashError = false; 
             }
@@ -291,7 +283,7 @@ namespace meter {
      * @param start the value that maps to the bottom reading eg: 32
      * @param limit the value that maps to the top reading eg: 212
      */
-    //% block="Use $style meter to show values from $start to $limit" 
+    //% block="use $style meter to show values from $start to $limit" 
     //% start.defl=0
     //% limit.defl=20
     //% weight=90
@@ -299,7 +291,7 @@ namespace meter {
         styleIs = style;
         fromValue = start;
         uptoValue = limit;
-        clear();
+        hide();
         switch (style) {
             case Styles.Dial:
                 mapSet = dialMaps;
@@ -334,7 +326,7 @@ namespace meter {
     //% block="Use digital meter to indicate values from 0 to 99"
     //% weight=80 
     export function digital() {
-        clear();
+        hide();
         styleIs = digitStyle;
         fromValue = 0;
         uptoValue = 99;
@@ -343,12 +335,14 @@ namespace meter {
     }
 
     /**
-     * Clear the meter off the display
+     * Hide the meter, stopping any animation or flashing
      */
-    //% block="clear meter"
+    //% block="hide meter"
     //% weight=30 
-    export function clear() {
+    export function hide() {
         stop();
-        clearFrame();
+        basic.clearScreen();
+        litMap = 0;
+        litFrame = -1;
     }
 }
