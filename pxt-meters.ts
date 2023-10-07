@@ -224,7 +224,7 @@ namespace meter {
                         basic.clearScreen();
                         litMap = 0;
                     } else {
-                        showFrame(finalFrame);
+                        showFrame(litFrame);
                     }
                 } else {
                     animating = false; // all done, so self-terminate!
@@ -239,12 +239,12 @@ namespace meter {
         if (animating) {
             animating = false;
             basic.pause(tick); // ensure background fiber has woken up...
-            if (flashError ) {
+            if (flashError) {
+                flashError = false; 
                 basic.pause(flashGap); // ... really woken up!
                 if (litMap == 0) {
-                    showFrame(finalFrame); // ensure finalFrame is left visible
+                    showFrame(litFrame); // ensure litFrame is left visible
                 }
-                flashError = false; 
             }
         }
     }
@@ -337,12 +337,21 @@ namespace meter {
     }
 
     /**
+     * Stop the meter, interrupting any animation or flashing
+     */
+    //% block="freeze meter"
+    //% weight=40 
+    export function freeze() {
+        stop(); // interrupt animation: leaving litFrame lit 
+    }
+
+    /**
      * Hide the meter, stopping any animation or flashing
      */
     //% block="hide meter"
     //% weight=30 
     export function hide() {
-        stop();
+        stop(); // interrupt animation, leaving litFrame lit 
         basic.clearScreen();
         litMap = 0;
         litFrame = -1;
