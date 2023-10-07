@@ -137,7 +137,7 @@ namespace meter {
 
     function mapToFrame(value: number, start: number, end: number,
         startFrame: number, endFrame: number): number {
-        let result = startFrame;
+        let result = endFrame;
         let span = end - start;             // (can be negative)
         let frames = endFrame - startFrame; // (can be negative)
         if (span != 0) {
