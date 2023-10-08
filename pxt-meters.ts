@@ -108,6 +108,8 @@ namespace meter {
         Needle,
         Tidal
     }
+    const AnimateID = 9020; // event source ID
+    const FinishedEvent = 1;
 
     let styleIs: number = digitStyle;
     let mapSet: number[] = digitMaps; // array of frame bit-maps
@@ -134,7 +136,7 @@ namespace meter {
     let then = 0;          // animation target end time
     let tick = 0;          // animation adjusting interval
     let flashGap = 125;    // flashing around 4 times/sec
-
+   
     function mapToFrame(value: number, start: number, end: number,
         startFrame: number, endFrame: number): number {
         let result = endFrame;
@@ -164,11 +166,12 @@ namespace meter {
         return Math.round(result)
     }
 
-    // update display to show new frame
-    // (frame will always be within the range [0..bound])
+    // modify display to show new frame
+    // which will always lie within the range [0..bound]
+    // except for digitStyle, when it will be within [0..99]
     function showFrame(frame: number) {
         if (styleIs == digitStyle) {
-            let tens = ~~(frame / 10);
+            let tens = ~~(frame / 10); // ~~ enforces integer result
             let units = frame % 10;
             // left-shift "units" map by 3 columns over to right side (=15 bits)
             // then OR-in "tens" map to occupy left 2 columns
@@ -230,23 +233,9 @@ namespace meter {
                     animating = false; // all done, so self-terminate!
                 }
             }
-        } 
-    }
-
-    // terminate any background activity (adjusting or flashing) and wait long 
-    // enough for the animate() fiber to have wakened, noticed and finished
-    function stop() {
-        if (animating) {
-            animating = false;
-            basic.pause(tick); // ensure background fiber has woken up...
-            if (flashError) {
-                flashError = false; 
-                basic.pause(flashGap); // ... really woken up!
-                if (litMap == 0) {
-                    showFrame(litFrame); // ensure litFrame is left visible
-                }
-            }
         }
+        // signal completion
+        control.raiseEvent(AnimateID, FinishedEvent);
     }
 
     // EXPORTED USER INTERFACES  
@@ -261,7 +250,7 @@ namespace meter {
     //% expandableArgumentMode="enabled"
     //% weight=100
     export function show(value: number, ms = 0) {
-        stop(); // cease any ongoing animation (leaves any current litFrame lit)
+        freeze(); // cease any ongoing animation (leaves any current litFrame lit)
         finalFrame = mapToFrame(value, fromValue, uptoValue, 0, bound);
         finalFrame = fixRange(finalFrame, 0, bound); // NOTE: may set rangeFixed!
         flashError = rangeFixed; // if so, remember the fact
@@ -275,7 +264,10 @@ namespace meter {
         }
         // use background task to adjust display, flashing final frame if needed 
         animating = true;
-        control.inBackground(function () { animate() })
+        control.inBackground(function () { animate() });
+        if (ms == 0) {
+
+        }
     }
 
     /**
@@ -342,7 +334,15 @@ namespace meter {
     //% block="freeze meter"
     //% weight=40 
     export function freeze() {
-        stop(); // interrupt animation: leaving litFrame lit 
+        if (animating) {
+    // terminate any background activity (adjusting or flashing) and await event
+    // saying that the animate() fiber has wakened, noticed and finished off
+            animating = false;
+            control.waitForEvent(AnimateID, FinishedEvent);
+            if (litMap == 0) { // ensure litFrame was left visible if flashing
+                showFrame(litFrame);
+            }
+        }
     }
 
     /**
@@ -351,7 +351,7 @@ namespace meter {
     //% block="hide meter"
     //% weight=30 
     export function hide() {
-        stop(); // interrupt animation, leaving litFrame lit 
+        freeze(); // interrupt any animation
         basic.clearScreen();
         litMap = 0;
         litFrame = -1;
