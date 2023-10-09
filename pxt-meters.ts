@@ -215,14 +215,14 @@ namespace meter {
                 let now = Math.min(input.runningTime(), then);
                 //  work out where we should have got to by "now"
                 let nextFrame = mapToFrame(now, when, then, firstFrame, finalFrame);
-                nextFrame = fixRange(nextFrame, 0, bound);
+                nextFrame = fixRange(nextFrame, 0, bound); // may have overshot
                 showFrame(nextFrame);
-                if (nextFrame != finalFrame) {
-                    pause(tick); // unless we've now arrived, cede control to scheduler for a bit
+                if (nextFrame == finalFrame) {
+                    tick = 10; // we've now arrived, so minimise pause
                 }
-            } else {  //... we've arrived, so do we need to flash or exit?
+            } else {  //... we've arrived, so do we need to flash or just exit?
                 if (flashError) {
-                    basic.pause(flashGap);
+                    pause(flashGap);
                     if (litMap != 0) {
                         basic.clearScreen();
                         litMap = 0;
@@ -233,8 +233,9 @@ namespace meter {
                     animating = false; // all done, so self-terminate!
                 }
             }
+            pause(tick); // cede control to scheduler for a bit
         }
-        // signal completion
+        // terminated, so signal completion
         control.raiseEvent(AnimateID, FinishedEvent);
     }
 
@@ -257,17 +258,15 @@ namespace meter {
         firstFrame = litFrame; // the inherited start-frame (may be -1 if none)
         when = input.runningTime();
         then = when + ms;
-        if (finalFrame == firstFrame) {
-            tick = 0; 
+        if ((finalFrame == firstFrame) || (ms == 0)) {
+            tick = 10; // (minimal, just to allow for interruption)
         } else {
             tick = Math.round(ms / Math.abs(finalFrame - firstFrame));      
         }
         // use background task to adjust display, flashing final frame if needed 
         animating = true;
         control.inBackground(function () { animate() });
-        if (ms == 0) {
 
-        }
     }
 
     /**
@@ -339,7 +338,7 @@ namespace meter {
     // saying that the animate() fiber has wakened, noticed and finished off
             animating = false;
             control.waitForEvent(AnimateID, FinishedEvent);
-            if (litMap == 0) { // ensure litFrame was left visible if flashing
+            if (litMap == 0) { // ensure litFrame was left visible after flashing
                 showFrame(litFrame);
             }
         }
