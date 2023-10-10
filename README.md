@@ -187,14 +187,18 @@ basic.forever(function () {
 ```
 
 ## Plumb-line
-Another use of the accelerometer maps the Pitch rotation (displaced by a right-angle) onto the 
-``||meter:Styles.Dial||`` indicator, with a reversed range, so that the needle always hangs downwards.
+For this use of the accelerometer we need to compute the Yaw rotation. This is then mapped (displaced by 
+a right-angle) onto the ``||meter:Styles.Dial||`` indicator, so that the needle always hangs downwards.
 
 ```blocks
-meter.use(meter.Styles.Dial, 360, 0);
+meter.use(meter.Styles.Dial, 0, 360);
 
 basic.forever(function () {
-    meter.show((input.rotation(Rotation.Pitch) + 442) % 360);
+// input.rotation(Rotation.Yaw) doesn't seem to exist!
+    let ax = input.acceleration(Dimension.X);
+    let ay = input.acceleration(Dimension.Y);
+    let yaw = Math.atan2(ay, ax) * 180 / Math.PI;
+    meter.show((yaw + 450) % 360);
     basic.pause(1000);
 });
 ```
