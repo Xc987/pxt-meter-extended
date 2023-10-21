@@ -135,7 +135,7 @@ namespace meter {
     let when = 0;          // animation starting time
     let then = 0;          // animation target end time
     let tick = 0;          // animation adjusting interval
-    let flashGap = 125;    // flashing around 4 times/sec
+    let flashGap = 166;    // flashing around 3 times/sec
    
     function mapToFrame(value: number, start: number, end: number,
         startFrame: number, endFrame: number): number {
@@ -209,20 +209,20 @@ namespace meter {
                 litFrame = finalFrame;
             }       
             if (litFrame != finalFrame) {
-    // NOTE: "then" was the target finish time for adjustment. 
-    // That time may already have passed if this fiber got delayed by other 
-    // unpredictable scheduled work, so code defensively...
+                // NOTE: "then" was the target finish time for adjustment. 
+                // That time may already have passed if this fiber got delayed by other 
+                // unpredictable scheduled work, so code our progress defensively...
                 let now = Math.min(input.runningTime(), then);
-                //  work out where we should have got to by "now"
+                //  work out where we should have got to by "now", possibly skipping some
                 let nextFrame = mapToFrame(now, when, then, firstFrame, finalFrame);
                 nextFrame = fixRange(nextFrame, 0, bound); // may have overshot
                 showFrame(nextFrame);
                 if (nextFrame == finalFrame) {
-                    tick = 10; // we've now arrived, so minimise pause
+                    tick = 10; // we've now arrived, so minimise final pause below
                 }
             } else {  //... we've arrived, so do we need to flash or just exit?
                 if (flashError) {
-                    pause(flashGap);
+                    pause(flashGap);  // (cedes control to scheduler for quite a while)
                     if (litMap != 0) {
                         basic.clearScreen();
                         litMap = 0;
@@ -230,12 +230,12 @@ namespace meter {
                         showFrame(litFrame);
                     }
                 } else {
-                    animating = false; // all done, so self-terminate!
+                    animating = false; // all done, so self-terminate next time round!
                 }
             }
-            pause(tick); // cede control to scheduler for a bit
+            pause(tick); // (always cede control to scheduler to allow other work)
         }
-        // terminated, so signal completion
+        // while loop has terminated, so signal completion and SoundExpressionEffect
         control.raiseEvent(AnimateID, FinishedEvent);
     }
 
@@ -338,7 +338,7 @@ namespace meter {
     // saying that the animate() fiber has wakened, noticed and finished off
             animating = false;
             control.waitForEvent(AnimateID, FinishedEvent);
-            if (litMap == 0) { // ensure litFrame was left visible after flashing
+            if (litMap == 0) { // ensure litFrame was left visible after possible flashing
                 showFrame(litFrame);
             }
         }
