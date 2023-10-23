@@ -129,17 +129,25 @@ input.onButtonPressed(Button.A, function () {
 ```
 
 ## Bangometer
-This example monitors jolts and knocks using the ``||meter:Styles.Spiral||`` indicator. The wound-up size 
-of the display shows the strength of each bang (up to a maximun of 1000 milli-gravities). 
-The indicator is then unwound back to zero over a time of 1.5 seconds. The ``||meter:Styles.Blob||`` style 
-would be equally appropriate, though with fewer distinct displays.
+This example monitors jolts and knocks using the ``||meter:Styles.Blob||`` indicator. The size 
+of the displayed "blob" roughly shows a rolling average of the strength of each bang 
+(up to a maximun of 1000 milli-gravities). 
+The indicator then shrinks away over a time of 1.5 seconds. 
 
 ```blocks
-meter.use(meter.Styles.Spiral, 0, 1000);
+meter.use(meter.Styles.Blob, 50, 1000);
+newValue = 1000
 
-input.onGesture(Gesture.ThreeG, function () {
-    meter.show(input.acceleration(Dimension.Strength));
-    meter.show(0, 1500);
+basic.forever(function () {
+	oldValue = newValue
+	newValue = input.acceleration(Dimension.Strength);
+	metric = Math.abs(newValue - oldValue)
+	if (metric > 50) { 
+		meter.show(metric);
+		basic.pause(50);
+		meter.show(50, 1500);
+	}
+
 });
 ```
 	 
