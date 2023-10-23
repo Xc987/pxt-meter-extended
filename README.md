@@ -11,7 +11,8 @@ The default meter shows a direct 2-digit readout of a value, which should lie in
 For many purposes 2 digits provide enough accuracy, especially when showing readings as percentages.
 
 ### ~reminder
-NOTE:  Since each digit uses only 10 pixels, they are inevitably somewhat stylized and take a bit of practice to read accurately --especially "0" and "8"
+NOTE:  Since each digit uses only 10 pixels, they are inevitably somewhat stylized and take a 
+bit of practice to read the digital meter accurately  --especially the digits "0" and "8"
 ### ~
 
 ## Displaying a value #meter-show
@@ -29,8 +30,8 @@ If you click on the "+", you can set an optional parameter:
 The meter will display intermediate values, arriving at the new ``||meter:value||`` after ms millisecs.  
 
 ### ~reminder
-NOTE: Any attempt to show a value that lies outside the range [``||meter:start||``...``||meter:limit||``] will be constrained 
-to the nearest bound, but will then flash to indicate the out-of-range error.
+NOTE: If you try to show a value that is too big or too small, your meter will stop at the 
+nearest end, but will then flash to indicate the "out-of-range" error.
 ### ~
 
 ## Choosing an indicator meter #meter-use
@@ -48,9 +49,9 @@ The ``||meter:meter.use()||`` block selects one of a number of possible visual i
 > ``||meter:limit||`` - is the value that maps to the top reading
 
 ### ~reminder
-The operating range for indicator displays is completely flexible: it is quite permissible for ``||meter:start||`` 
-to exceed ``||meter:limit||``, or for either (or both) to be negative. They need not be whole numbers either: 
-fractional values are quite OK.
+The range for indicator displays is completely flexible: when ``||meter:start||`` is bigger 
+than ``||meter:limit||`` it will just count down. Either end can be a negative value, and they 
+need not even be whole numbers: fractional values are quite OK.
 ### ~
 
 ### Indicator Styles:
@@ -77,14 +78,15 @@ This meter style is similar to the Blob, but winds round clockwise in a spiral t
 ```sig
 meter.digital()
 ```
-Use this block to switch back to showing numerical measurements.
+Use this block to switch back to showing numerical measurements. The range will always be from "00" to "99". 
+(Any other values will flash the out-of-range error.)
 
 ## Hiding the meter #meter-hide
 
 ```sig
 meter.hide()
 ```
-This block stops any animation or out-of-range flashing and clears the display.
+This block stops any animation or out-of-range flashing, and clears the display.
 
 # Examples
 
