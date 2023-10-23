@@ -1,5 +1,5 @@
 {
-    "name": "pxt-meters",
+    "name": "pxt-meter",
     "version": "0.1.14",
     "description": "",
     "dependencies": {
@@ -9,7 +9,7 @@
     },
     "files": [
         "README.md",
-        "pxt-meters.ts",
+        "pxt-meter.ts",
         "tutorial-info-cache.json"
     ],
     "testFiles": [],

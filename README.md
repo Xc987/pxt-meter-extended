@@ -1,5 +1,5 @@
 ```package
-meter=github:grandpabond/pxt-meters
+meter=github:grandpabond/pxt-meter
 ```
 # meter --- Adding values to your project!
 
@@ -11,7 +11,7 @@ The default meter shows a direct 2-digit readout of a value, which should lie in
 For many purposes 2 digits provide enough accuracy, especially when showing readings as percentages.
 
 ### ~reminder
-NOTE:  Since each digit uses only 10 pixels, they are inevitably somewhat stylized and take a 
+NOTE:  Since each digit uses only 10 pixels, they are inevitably somewhat stylized. So it takes a 
 bit of practice to read the digital meter accurately  --especially the digits "0" and "8"
 ### ~
 
@@ -27,7 +27,7 @@ This block adjusts the meter to show a new reading.
 If you click on the "+", you can set an optional parameter:
 
 > ``||meter:ms||`` - is used to control the settling time of an animated adjustment to the new value. 
-The meter will display intermediate values, arriving at the new ``||meter:value||`` after ms millisecs.  
+The meter will display in-between values, arriving at the new ``||meter:value||`` after ms millisecs.  
 
 ### ~reminder
 NOTE: If you try to show a value that is too big or too small, your meter will stop at the 
@@ -40,7 +40,8 @@ nearest end, but will then flash to indicate the "out-of-range" error.
 meter.use(style, start, limit)
 ```
 Often the exact numeric value is less important than providing a rapid visual indication of a measurement.
-The ``||meter:meter.use()||`` block selects one of a number of possible visual indicators:
+The ``||meter:meter.use()||`` block lets you select one of a number of possible visual indicators, with 
+varying resolutions.
 
 > ``||meter:style||`` - chooses one of the indicator Styles (see below)
 
@@ -50,11 +51,12 @@ The ``||meter:meter.use()||`` block selects one of a number of possible visual i
 
 ### ~reminder
 The range for indicator displays is completely flexible: when ``||meter:start||`` is bigger 
-than ``||meter:limit||`` it will just count down. Either end can be a negative value, and they 
+than ``||meter:limit||``, higher values will just show lower readings. Either end can be a negative value, and they 
 need not even be whole numbers: fractional values are quite OK.
 ### ~
 
 ### Indicator Styles:
+
 > ``||meter:Styles.Bar||``This meter style (similar to the built-in ``||led:led.plotBarGraph||`` block) fills up 
 each row in turn from the bottom, with 1, 3, or 5 centred pixels, giving a total of 15 distinct displays.
 
@@ -62,7 +64,7 @@ each row in turn from the bottom, with 1, 3, or 5 centred pixels, giving a total
 This meter style shows a short 3-pixel pointer rotating from the 12 o'clock position through 24 different angles.
   
 > ``||meter:Styles.Needle||``
-This meter style swings a needle centred on the top left corner from horizontal, clockwise to vertical in 17 steps.
+This meter style show a needle pivoting on the top left corner. It swings clockwise from horizontal to vertical in 17 steps.
 
 > ``||meter:Styles.Tidal||``
 This meter style fills the display progressively from the bottom left to the top right in 25 steps.
@@ -132,34 +134,36 @@ input.onButtonPressed(Button.A, function () {
 This example monitors jolts and knocks using the ``||meter:Styles.Blob||`` indicator. The size 
 of the displayed "blob" roughly shows a rolling average of the strength of each bang 
 (up to a maximun of 1000 milli-gravities). 
-The indicator then shrinks away over a time of 1.5 seconds. 
+The indicator then dies away over a time of 1.5 seconds. 
 
 ```blocks
 meter.use(meter.Styles.Blob, 50, 1000);
-newValue = 1000
+let gravityWas = 1000;
 
 basic.forever(function () {
-	oldValue = newValue
-	newValue = input.acceleration(Dimension.Strength);
-	metric = Math.abs(newValue - oldValue)
-	if (metric > 50) { 
-		meter.show(metric);
+    basic.pause(20);
+    gravity = input.acceleration(Dimension.Strength);
+    bang = Math.abs(gravity - gravityWas);
+	if (bang > 50) { 
+		meter.show(bang);
 		basic.pause(50);
 		meter.show(50, 1500);
 	}
-
+    gravityWas = gravity;
 });
 ```
+
+            
 	 
 ## Compass
 The following code uses the rotary ``||meter:Styles.Dial||`` style to show a compass needle that (should) 
-always point North. Note that the dial uses a reversed scale counting from 360 degrees down to zero. 
+always point North. Note that the dial uses a reversed scale counting from 359 degrees down to zero. 
 (You will first have to tilt the screen as instructed to calibrate the magnetometer to its surroundings)
 
 ```blocks
 input.calibrateCompass();
 basic.pause(2000);
-meter.use(meter.Styles.Dial, 360, 0);
+meter.use(meter.Styles.Dial, 359, 0);
 
 basic.forever(function () {
     meter.show(input.compassHeading());
@@ -168,73 +172,80 @@ basic.forever(function () {
 ```
 
 ## Noise Meter
-The following code uses the ``||meter:Styles.Bar||`` style to show peak noise levels, sampled four times a 
-second. The signal uses a rolling average, so gradually dies away over time. If it's too loud the 
-indicator will flash to show a range error.
+The following code uses the ``||meter:Styles.Spiral||`` style to show peak noise levels, sampled four times a 
+second. The animated spiral uses a rolling average, so grows gradually and then slowly unwinds over time. 
+If it's too loud the indicator will flash to show a range error.
 
 ```blocks
-meter.use(meter.Styles.Bar, 0, 100);
-let signal = 0;
+meter.use(meter.Styles.Spiral, 40, 80);
+let value = 60;
 
 basic.forever(function () {
-    signal = (signal + input.soundLevel()) / 2;
-    meter.show(signal);
+    value = (value + input.soundLevel()) / 2;
+    meter.show(value,800);
     basic.pause(250);
 })
 ```
 
 ## Water Spill
 This example uses the ``||meter:Styles.Tidal||`` indicator to simulate spilling water from the bottom left 
-to the top right as you tilt the microbit. A half-second animation delay makes the movement smoother.
+to the top right as you tilt the microbit. 
+A rolling average and a half-second animation delay makes the movement smoother and adds some viscosity.
 
 ```blocks
-meter.use(meter.Styles.Tidal, -30, 30);
+meter.use(meter.Styles.Tidal, -30, 20);
+let value = 60;
 
 basic.forever(function () {
-    meter.show(input.rotation(Rotation.Roll) - input.rotation(Rotation.Pitch), 500);
+    value = (value + input.rotation(Rotation.Roll) - input.rotation(Rotation.Pitch))/2
+	meter.show(value, 500);
     basic.pause(1000);
 });
 ```
 
 ## Plumb-line
-For this use of the accelerometer we need to compute the Yaw rotation. This is then mapped (displaced by 
-a right-angle) onto the ``||meter:Styles.Dial||`` indicator, so that the needle always hangs downwards.
+For this use of the accelerometer we'll need a function to compute the Yaw rotation. This is then continuously 
+mapped (displaced by a right-angle) onto the ``||meter:Styles.Dial||`` indicator, so that the needle always hangs downwards.
 
 ```blocks
 meter.use(meter.Styles.Dial, 0, 360);
 
+function rotationYaw():number {
+	let ax = input.acceleration(Dimension.X);
+	let ay = input.acceleration(Dimension.Y);
+	return (Math.atan2(ay, ax) * 180 / Math.PI);
+}
+
 basic.forever(function () {
-// input.rotation(Rotation.Yaw) doesn't seem to exist!
-    let ax = input.acceleration(Dimension.X);
-    let ay = input.acceleration(Dimension.Y);
-    let yaw = Math.atan2(ay, ax) * 180 / Math.PI;
-    meter.show((yaw + 450) % 360);
+	meter.show(((rotationYaw() + 450) % 360))
     basic.pause(1000);
 });
 ```
 
 # Lie-detector
-This final example uses the ``||meter:Styles.Needle||`` indicator to monitor the capacitive input on Pin2 of the microbit.
+This final example uses the ``||meter:Styles.Needle||`` indicator to monitor the capacitive input on Pin2 of the microbit 
+(which may or may not reflect the truthfulness of the person touching it!).
 
-The signal is a rolling average, and despite possible inputs ranging from [0 .. 1023], the sensitivity 
-has been experimentally focused onto a smaller working range of [600 .. 800].
+The value is a rolling average, and despite possible inputs ranging from [0 .. 1023], the sensitivity 
+has been experimentally focused onto a smaller working range of [600 .. 900].
 
 ```blocks
-meter.use(meter.Styles.Needle, 600, 800);
+meter.use(meter.Styles.Needle, 600, 900);
 pins.touchSetMode(TouchTarget.P2, TouchTargetMode.Capacitive);
-let signal = 700;
+let value = 700;
 
 basic.forever(function () {
-    signal = (signal + pins.analogReadPin(AnalogPin.P2)) / 2;
-    meter.show(signal);
+    value = (value + pins.analogReadPin(AnalogPin.P2)) / 2;
+    meter.show(value);
     basic.pause(500);
 });
 ```
 
 
 
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-> Open this page at [https://grandpabond.github.io/pxt-meters/](https://grandpabond.github.io/pxt-meters/)
+> Open this page at [https://grandpabond.github.io/pxt-meter/](https://grandpabond.github.io/pxt-meter/)
 
 ## Use as Extension
 
@@ -243,7 +254,7 @@ This repository can be added as an **extension** in MakeCode.
 * open [https://makecode.microbit.org/](https://makecode.microbit.org/)
 * click on **New Project**
 * click on **Extensions** under the gearwheel menu
-* search for **https://github.com/grandpabond/pxt-meters** and import
+* search for **https://github.com/grandpabond/pxt-meter** and import
 
 ## Edit this project
 
@@ -251,7 +262,7 @@ To edit this repository in MakeCode.
 
 * open [https://makecode.microbit.org/](https://makecode.microbit.org/)
 * click on **Import** then click on **Import URL**
-* paste **https://github.com/grandpabond/pxt-meters** and click import
+* paste **https://github.com/grandpabond/pxt-meter** and click import
 
 #### Metadata (used for search, rendering)
 
