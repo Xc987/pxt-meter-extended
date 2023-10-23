@@ -85,19 +85,6 @@ const needleMaps = [
     0x000001F]; // 16 ----
 const needleBound = 16;
 
-/*   BLOB - disc expanding from centre
-
-const blobData = [
-    55555522,
-    21123224,
-    11311333,
-    20024224,
-    10410334,
-    30014314,
-    00400444];
-const blobBound = 7;
-*/
-
 //% color=#6070c0 weight=40 icon="\uf163" block="Meter" 
 namespace meter {
     export enum Styles {
@@ -235,7 +222,7 @@ namespace meter {
             }
             pause(tick); // (always cede control to scheduler to allow other work)
         }
-        // while loop has terminated, so signal completion and SoundExpressionEffect
+        // while loop has terminated, so signal our completion, then exit
         control.raiseEvent(AnimateID, FinishedEvent);
     }
 
@@ -272,9 +259,9 @@ namespace meter {
     /**
      * Choose a non-numeric visual indicator for showing future values
      * together with the range of values it will indicate
-     * @param style your choice of indicator style eg: meter.Style.Bar
-     * @param start the value that maps to the bottom reading eg: 32
-     * @param limit the value that maps to the top reading eg: 212
+     * @param style -your choice of indicator style eg: meter.Style.Bar
+     * @param start -the value that maps to the bottom reading eg: 32
+     * @param limit -the value that maps to the top reading eg: 212
      */
     //% block="use $style meter to show values from $start to $limit" 
     //% start.defl=0
