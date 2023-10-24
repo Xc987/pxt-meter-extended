@@ -10,7 +10,8 @@
     "files": [
         "README.md",
         "pxt-meter.ts",
-        "tutorial-info-cache.json"
+        "tutorial-info-cache.json",
+        "test.ts"
     ],
     "testFiles": [],
     "targetVersions": {
