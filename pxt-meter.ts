@@ -85,14 +85,25 @@ const needleMaps = [
     0x000001F]; // 16 ----
 const needleBound = 16;
 
+/**
+ * an extension for displaying a reading digitally 
+ * or with a scaled analogue indicator.
+ */
+
 //% color=#6070c0 weight=40 icon="\uf163" block="Meter" 
 namespace meter {
     export enum Styles {
+        //%block="blob"
         Blob,
+        //%block="spiral"
         Spiral,
+        //%block="bar"
         Bar,
+        //%block="dial"
         Dial,
+        //%block="needle"
         Needle,
+        //%block="tidal"
         Tidal
     }
     const AnimateID = 9020; // event source ID

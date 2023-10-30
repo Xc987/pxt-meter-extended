@@ -83,12 +83,21 @@ meter.digital()
 Use this block to switch back to showing numerical measurements. The range will always be from "00" to "99". 
 (Any other values will flash the out-of-range error.)
 
+
+## Stopping display animation #meter-hide
+
+```sig
+meter.freeze()
+```
+Use this block to stop background changes to the meter, interrupting any animated 
+adjustment or (more usefully) turning off out-of-range error flashing.
+
 ## Hiding the meter #meter-hide
 
 ```sig
 meter.hide()
 ```
-This block stops any animation or out-of-range flashing, and clears the display.
+When you no longer want to display a meter, his block clears the display.
 
 # Examples
 
