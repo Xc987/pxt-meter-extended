@@ -1,90 +1,3 @@
-// M E T E R 
-
-/* Default style is DIGITAL: a 2-digit readout from 0 to 99
-    Each digit uses a 10-bit bitmap (0...1023) encoding pixels vertically
-    from 2 adjacent display columns, either {0,1} or {3,4}:
-        2^0=1   2^5=32
-        2^1=2   2^6=64
-        2^2=4   2^7=128
-        2^4=8   2^8=256
-        2^5=16  2^9=512
-    combined as ((tensMap << 15) + unitsMap) to give a full bitmap 
-*/
-const digitMaps = [
-    0x1CE,  // 462,  //"0" 
-    0x3E0,  // 992,  //"1" 
-    0x2FD,  // 765,  //"2" 
-    0x3F5,  // 1013, //"3" 
-    0x38F,  // 911,  //"4" 
-    0x3B7,  // 951,  //"5" 
-    0x39F,  // 927,  //"6" 
-    0x3E1,  // 993,  //"7" 
-    0x37B,  // 891,  //"8" 
-    0x3E7]; // 999   //"9" 
-const digitBound = 99;
-const digitStyle = -1;
-
-/* displayed frames are coded column-wise from top-left as 25-bit bit-maps:
-*/
-// DIAL: 24 frames rotate 3-pixel pointer about middle
-const dialMaps = [
-    0x0001C00, 0x0009800, 0x0019000, 0x0111000, 0x0211000, 0x0221000,
-    0x0421000, 0x0821000, 0x0841000, 0x1041000, 0x00C1000, 0x0083000,
-    0x0007000, 0x0003200, 0x0001300, 0x0001110, 0x0001108, 0x0001088,
-    0x0001084, 0x0001082, 0x0001042, 0x0001041, 0x0001060, 0x0001820];
-const dialBound = 23;
-
-// BLOB: 7 frames growing outwards from middle
-const blobMaps = [
-    0x0001000, 0x0023880, 0x00739C0, 0x0477DC4,
-    0x06F7DEC, 0x0EFFFEE, 0x1FFFFFF];
-const blobBound = 6;
-
-// BAR: 15 frames of vertical bar-graph  
-const barMaps = [
-    0x0004000, 0x0084200, 0x1084210, 0x1086210, 0x10C6310, 0x18C6318,
-    0x18C7318, 0x18E7398, 0x1CE739C, 0x1CE7B9C, 0x1CF7BDC, 0x1EF7BDE,
-    0x1EF7FDE, 0x1EFFFFE, 0x1FFFFFF];
-const barBound = 14;
-
-// SPIRAL: 25 frames winding outwards from middle
-const spiralMaps = [
-    0x0001000, 0x0021000, 0x0061000, 0x0063000, 0x0063100, 0x0063180,
-    0x00631C0, 0x00639C0, 0x00739C0, 0x02739C0, 0x06739C0, 0x0E739C0,
-    0x1E739C0, 0x1EF39C0, 0x1EF79C0, 0x1EF7BC0, 0x1EF7BD0, 0x1EF7BD8,
-    0x1EF7BDC, 0x1EF7BDE, 0x1EF7BDF, 0x1EF7BFF, 0x1EF7FFF, 0x1EFFFFF, 0x1FFFFFF];
-const spiralBound = 24;
-
-// TIDAL: 25 frames washing diagonally up from bottom-left corner
-const tidalMaps = [
-    0x0000010, 0x0000210, 0x0000218, 0x000021C, 0x000031C, 0x000431C,
-    0x008431C, 0x008631C, 0x008639C, 0x008639E, 0x008639F, 0x00863DF,
-    0x00873DF, 0x00C73DF, 0x10C73DF, 0x18C73DF, 0x18E73DF, 0x18E7BDF,
-    0x18E7BFF, 0x18E7FFF, 0x18F7FFF, 0x1CF7FFF, 0x1EF7FFF, 0x1EFFFFF,
-    0x1FFFFFF];
-const tidalBound = 24;
-
-// NEEDLE: 17 frames swinging clockwise around top-left corner
-const needleMaps = [
-    0x0108421,  //  0 ----
-    0x0208421,  //  1 -
-    0x0210421,  //  2 --
-    0x0210841,  //  3 -
-    0x0410841,  //  4 ---
-    0x0420841,  //  5 -
-    0x0820841,  //  6 --
-    0x0821041,  //  7 -
-    0x0041041,  //  8 ----
-    0x0083041,  //  9 -
-    0x00820C1,  // 10 --
-    0x00060C1,  // 11 -
-    0x00041C1,  // 12 ---
-    0x0000383,  // 13 -
-    0x0000307,  // 14 --
-    0x000020F,  // 15 -
-    0x000001F]; // 16 ----
-const needleBound = 16;
-
 /**
  * an extension for displaying a reading,
  * digitally or with a scaled analogue indicator.
@@ -92,6 +5,92 @@ const needleBound = 16;
 
 //% color=#6070c0 weight=40 icon="\uf163" block="Meter" 
 namespace meter {
+
+    /* Default style is DIGITAL: a 2-digit readout from 0 to 99
+        Each digit uses a 10-bit bitmap (0...1023) encoding pixels vertically
+        from 2 adjacent display columns, either {0,1} or {3,4}:
+            2^0=1   2^5=32
+            2^1=2   2^6=64
+            2^2=4   2^7=128
+            2^4=8   2^8=256
+            2^5=16  2^9=512
+        combined as ((tensMap << 15) + unitsMap) to give a full bitmap 
+    */
+    const digitMaps = [
+        0x1CE,  // 462,  //"0" 
+        0x3E0,  // 992,  //"1" 
+        0x2FD,  // 765,  //"2" 
+        0x3F5,  // 1013, //"3" 
+        0x38F,  // 911,  //"4" 
+        0x3B7,  // 951,  //"5" 
+        0x39F,  // 927,  //"6" 
+        0x3E1,  // 993,  //"7" 
+        0x37B,  // 891,  //"8" 
+        0x3E7]; // 999   //"9" 
+    const digitBound = 99;
+    const digitStyle = -1;
+
+    /* displayed frames are coded column-wise from top-left as 25-bit bit-maps:
+    */
+    // DIAL: 24 frames rotate 3-pixel pointer about middle
+    const dialMaps = [
+        0x0001C00, 0x0009800, 0x0019000, 0x0111000, 0x0211000, 0x0221000,
+        0x0421000, 0x0821000, 0x0841000, 0x1041000, 0x00C1000, 0x0083000,
+        0x0007000, 0x0003200, 0x0001300, 0x0001110, 0x0001108, 0x0001088,
+        0x0001084, 0x0001082, 0x0001042, 0x0001041, 0x0001060, 0x0001820];
+    const dialBound = 23;
+
+    // BLOB: 7 frames growing outwards from middle
+    const blobMaps = [
+        0x0001000, 0x0023880, 0x00739C0, 0x0477DC4,
+        0x06F7DEC, 0x0EFFFEE, 0x1FFFFFF];
+    const blobBound = 6;
+
+    // BAR: 15 frames of vertical bar-graph  
+    const barMaps = [
+        0x0004000, 0x0084200, 0x1084210, 0x1086210, 0x10C6310, 0x18C6318,
+        0x18C7318, 0x18E7398, 0x1CE739C, 0x1CE7B9C, 0x1CF7BDC, 0x1EF7BDE,
+        0x1EF7FDE, 0x1EFFFFE, 0x1FFFFFF];
+    const barBound = 14;
+
+    // SPIRAL: 25 frames winding outwards from middle
+    const spiralMaps = [
+        0x0001000, 0x0021000, 0x0061000, 0x0063000, 0x0063100, 0x0063180,
+        0x00631C0, 0x00639C0, 0x00739C0, 0x02739C0, 0x06739C0, 0x0E739C0,
+        0x1E739C0, 0x1EF39C0, 0x1EF79C0, 0x1EF7BC0, 0x1EF7BD0, 0x1EF7BD8,
+        0x1EF7BDC, 0x1EF7BDE, 0x1EF7BDF, 0x1EF7BFF, 0x1EF7FFF, 0x1EFFFFF, 0x1FFFFFF];
+    const spiralBound = 24;
+
+    // TIDAL: 25 frames washing diagonally up from bottom-left corner
+    const tidalMaps = [
+        0x0000010, 0x0000210, 0x0000218, 0x000021C, 0x000031C, 0x000431C,
+        0x008431C, 0x008631C, 0x008639C, 0x008639E, 0x008639F, 0x00863DF,
+        0x00873DF, 0x00C73DF, 0x10C73DF, 0x18C73DF, 0x18E73DF, 0x18E7BDF,
+        0x18E7BFF, 0x18E7FFF, 0x18F7FFF, 0x1CF7FFF, 0x1EF7FFF, 0x1EFFFFF,
+        0x1FFFFFF];
+    const tidalBound = 24;
+
+    // NEEDLE: 17 frames swinging clockwise around top-left corner
+    const needleMaps = [
+        0x0108421,  //  0 ----
+        0x0208421,  //  1 -
+        0x0210421,  //  2 --
+        0x0210841,  //  3 -
+        0x0410841,  //  4 ---
+        0x0420841,  //  5 -
+        0x0820841,  //  6 --
+        0x0821041,  //  7 -
+        0x0041041,  //  8 ----
+        0x0083041,  //  9 -
+        0x00820C1,  // 10 --
+        0x00060C1,  // 11 -
+        0x00041C1,  // 12 ---
+        0x0000383,  // 13 -
+        0x0000307,  // 14 --
+        0x000020F,  // 15 -
+        0x000001F]; // 16 ----
+    const needleBound = 16;
+
     export enum Styles {
         //%block="blob"
         Blob,
@@ -202,7 +201,7 @@ namespace meter {
     // and when finalFrame reached, flash if range-error signalled
     // (Sleeps between interations, but must be prepared to terminate prematurely)
     function animate(): void {
-        isShowing = true; 
+        isShowing = true;
         while (canShow) {
             if (litFrame == -1) { // (NOTE: on first use litFrame will be -1)
                 showFrame(finalFrame);
