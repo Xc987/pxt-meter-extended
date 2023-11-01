@@ -9,11 +9,11 @@
     },
     "files": [
         "README.md",
-        "pxt-meter.ts",
-        "tutorial-info-cache.json",
+        "pxt-meter.ts"
+    ],
+    "testFiles": [
         "test.ts"
     ],
-    "testFiles": [],
     "targetVersions": {
         "target": "6.1.6",
         "targetId": "microbit"
