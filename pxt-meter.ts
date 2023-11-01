@@ -275,7 +275,7 @@ namespace meter {
      * @param limit -the value that maps to the top reading eg: 212
      */
     //% block="use $style meter to show values from $start to $limit" 
-    //% style.defl=Styles.Bar
+    //% style.defl=meter.Styles.Bar
     //% start.defl=0
     //% limit.defl=20
     //% weight=90
