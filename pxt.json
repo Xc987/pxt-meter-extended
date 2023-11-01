@@ -10,7 +10,8 @@
     },
     "files": [
         "README.md",
-        "pxt-meter.ts"
+        "pxt-meter.ts",
+        "testFiles/test.ts"
     ],
     "testFiles": [],
     "targetVersions": {
