@@ -127,7 +127,8 @@ namespace meter {
     let litFrame: number = -1; // currently displayed frame (-1 says none)
     let rangeFixed = false;    // notify overflow/underflow
     let flashError = false;    // finalFrame was out of range before correction
-    let animating = false; // true while animate() fiber is running in inBackground
+    let canShow = false;   // true while animate() fiber allowed to run in inBackground
+    let isShowing = false; // true while animate() fiber is actively showing/flashing frames
     let firstFrame = 0;    // animation start-value
     let finalFrame = 0;    // animation end-value
     let when = 0;          // animation starting time
@@ -201,7 +202,8 @@ namespace meter {
     // and when finalFrame reached, flash if range-error signalled
     // (Sleeps between interations, but must be prepared to terminate prematurely)
     function animate(): void {
-        while (animating) {
+        isShowing = true; 
+        while (canShow) {
             if (litFrame == -1) { // (NOTE: on first use litFrame will be -1)
                 showFrame(finalFrame);
                 litFrame = finalFrame;
@@ -211,7 +213,7 @@ namespace meter {
                 // That time may already have passed if this fiber got delayed by other 
                 // unpredictable scheduled work, so code our progress defensively...
                 let now = Math.min(input.runningTime(), then);
-                //  work out where we should have got to by "now", possibly skipping some
+                //  work out frame we should have got to by "now", possibly skipping some
                 let nextFrame = mapToFrame(now, when, then, firstFrame, finalFrame);
                 nextFrame = fixRange(nextFrame, 0, bound); // may have overshot
                 showFrame(nextFrame);
@@ -228,28 +230,30 @@ namespace meter {
                         showFrame(litFrame);
                     }
                 } else {
-                    animating = false; // all done, so self-terminate next time round!
+                    canShow = false; // all done, so self-terminate next time round!
                 }
             }
             pause(tick); // (always cede control to scheduler to allow other work)
         }
         // while loop has terminated, so signal our completion, then exit
         control.raiseEvent(AnimateID, FinishedEvent);
+        isShowing = false;
     }
 
     // EXPORTED USER INTERFACES  
 
     /** 
      * Show a new value for meter (immediately, or adjusting gradually over time)
-     * @param value -new value to be shown, eg: 66
-     * @param ms -(optional) settling time in millisecs for the new value, eg: 250
+     * @param value new value to be shown, eg: 66
+     * @param ms (optional) settling time in millisecs for the new value, eg: 250
      */
     //% block="show meter value= $value || , taking $ms ms" 
     //% inlineInputMode=inline
     //% expandableArgumentMode="enabled"
     //% weight=100
     export function show(value: number, ms = 0) {
-        freeze(); // cease any ongoing animation (leaves any current litFrame lit)
+        // cease any ongoing animation (leaves any current litFrame lit)
+        if (isShowing) { freeze() }
         finalFrame = mapToFrame(value, fromValue, uptoValue, 0, bound);
         finalFrame = fixRange(finalFrame, 0, bound); // NOTE: may set rangeFixed!
         flashError = rangeFixed; // if so, remember the fact
@@ -261,18 +265,20 @@ namespace meter {
         } else {
             tick = Math.round(ms / Math.abs(finalFrame - firstFrame));
         }
-        // use background task to adjust display, flashing final frame if needed 
-        animating = true;
-        control.inBackground(function () { animate() });
+        // allow background task to adjust display, flashing final frame if needed 
+        canShow = true;
+        if (!isShowing) {
+            control.inBackground(function () { animate() });
+        }
 
     }
 
     /**
      * Choose a non-numeric visual indicator for showing future values
      * together with the range of values it will indicate
-     * @param style -your choice of indicator style eg: meter.Style.Bar
-     * @param start -the value that maps to the bottom reading eg: 32
-     * @param limit -the value that maps to the top reading eg: 212
+     * @param style your choice of indicator style eg: meter.Style.Bar
+     * @param start the value that maps to the bottom reading eg: 32
+     * @param limit the value that maps to the top reading eg: 212
      */
     //% block="use $style meter to show values from $start to $limit" 
     //% style.defl=meter.Styles.Bar
@@ -332,10 +338,10 @@ namespace meter {
     //% block="freeze meter"
     //% weight=40 
     export function freeze() {
-        if (animating) {
+        if (isShowing) {
             // terminate any background activity (adjusting or flashing) and await event
-            // saying that the animate() fiber has wakened, noticed and finished off
-            animating = false;
+            // saying that the animate() fiber has wakened; noticed; and finished off
+            canShow = false;
             control.waitForEvent(AnimateID, FinishedEvent);
             if (litMap == 0) { // ensure litFrame was left visible after possible flashing
                 showFrame(litFrame);

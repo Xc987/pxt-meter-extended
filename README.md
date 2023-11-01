@@ -139,6 +139,18 @@ input.onButtonPressed(Button.A, function () {
 });
 ```
 
+## Breath Trainer
+A tiny example to guide your breathing, using your chosen visual indicator. (Try them all out in turn!)
+
+```blocks
+meter.use(meter.Styles.Bar, -1, 1);
+let y = 0;
+basic.forever(function () {
+    y = Math.sin(input.runningTime() / 1500);
+    meter.show(y);
+})
+```
+
 ## Bangometer
 This example monitors jolts and knocks using the ``||meter:Styles.Blob||`` indicator. The size 
 of the displayed "blob" roughly shows a rolling average of the strength of each bang 
