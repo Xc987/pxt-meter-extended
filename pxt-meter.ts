@@ -2,7 +2,7 @@
 
 /* Default style is DIGITAL: a 2-digit readout from 0 to 99
     Each digit uses a 10-bit bitmap (0...1023) encoding pixels vertically
-    from 2 adjacent display columns, either {0,1} or{3,4}:
+    from 2 adjacent display columns, either {0,1} or {3,4}:
         2^0=1   2^5=32
         2^1=2   2^6=64
         2^2=4   2^7=128
@@ -86,8 +86,8 @@ const needleMaps = [
 const needleBound = 16;
 
 /**
- * an extension for displaying a reading digitally 
- * or with a scaled analogue indicator.
+ * an extension for displaying a reading,
+ * digitally or with a scaled analogue indicator.
  */
 
 //% color=#6070c0 weight=40 icon="\uf163" block="Meter" 
@@ -275,6 +275,7 @@ namespace meter {
      * @param limit -the value that maps to the top reading eg: 212
      */
     //% block="use $style meter to show values from $start to $limit" 
+    //% style.defl=Styles.Bar
     //% start.defl=0
     //% limit.defl=20
     //% weight=90
