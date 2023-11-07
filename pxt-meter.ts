@@ -135,14 +135,19 @@ namespace meter {
     let tick = 0;          // animation adjusting interval
     let flashGap = 166;    // flashing around 3 times/sec
 
-    function mapToFrame(value: number, start: number, end: number,
-        startFrame: number, endFrame: number): number {
+   function mapToFrame(value: number, start: number, end: number,
+                   startFrame: number, endFrame: number): number {
         let result = endFrame;
-        let span = end - start;             // (can be negative)
-        let frames = endFrame - startFrame; // (can be negative)
+        let span = end - start; // (can be negative)	
+        let frames = endFrame - startFrame; // (can go backwards)	
+        if (startFrame > endFrame) { // count the end frame too
+            frames--; 
+        } else {
+            frames++;
+        }
         if (span != 0) {
             let frac = (value - start) / span;
-            result = startFrame + (frac * frames);
+            result = Math.floor(startFrame + (frac * frames));
         }
         return result;
     }

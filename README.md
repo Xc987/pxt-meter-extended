@@ -172,13 +172,11 @@ basic.forever(function () {
 	}
     gravityWas = gravity;
 });
-```
-
-            
+```          
 	 
 ## Compass
 The following code uses the rotary ``||meter:Styles.Dial||`` style to show a compass needle that (should) 
-always point North. Note that the dial uses a reversed scale counting from 359 degrees down to zero. 
+always point North. Note that the dial uses a reversed scale counting from 360 degrees down to zero. 
 (You will first have to tilt the screen as instructed to calibrate the magnetometer to its surroundings)
 
 ```blocks
@@ -186,8 +184,10 @@ input.calibrateCompass();
 basic.pause(2000);
 meter.use(meter.Styles.Dial, 359, 0);
 
-basic.forever(function () {
-    meter.show(input.compassHeading());
+basic.forever(function () { 
+    // to centralise pointer, offset readings anti-clockwise
+    let pointer= (input.compassHeading() + 352.5) % 360
+    meter.show(pointer);
     basic.pause(500);
 });
 ```
@@ -226,7 +226,7 @@ basic.forever(function () {
 
 ## Plumb-line
 For this use of the accelerometer we'll need a function to compute the Yaw rotation. This is then continuously 
-mapped (displaced by a right-angle) onto the ``||meter:Styles.Dial||`` indicator, so that the needle always hangs downwards.
+mapped (displaced by a right-angle, plus a bit extra) onto the ``||meter:Styles.Dial||`` indicator, so that the needle always hangs downwards.
 
 ```blocks
 meter.use(meter.Styles.Dial, 0, 360);
@@ -238,7 +238,8 @@ function rotationYaw():number {
 }
 
 basic.forever(function () {
-	meter.show(((rotationYaw() + 450) % 360))
+// to centralise pointer, offset yaw clockwise
+	meter.show(((rotationYaw() + 457.5) % 360)) 
     basic.pause(1000);
 });
 ```

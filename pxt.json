@@ -1,7 +1,7 @@
 {
     "name": "pxt-meter",
     "version": "0.1.18",
-    "description": "",
+    "description": "extension for displaying a reading digitally, or with an analogue indicator",
     "license": "MIT",
     "dependencies": {
         "core": "*",
@@ -11,10 +11,11 @@
     "files": [
         "README.md",
         "pxt-meter.ts",
-        "testFiles/test.ts",
         "tutorial-info-cache.json"
     ],
-    "testFiles": [],
+    "testFiles": [
+        "test.ts"
+    ],
     "targetVersions": {
         "target": "6.1.6",
         "targetId": "microbit"
