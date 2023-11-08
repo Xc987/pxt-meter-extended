@@ -325,7 +325,7 @@ namespace meter {
     /**
      * Use the digital counter for showing future values
      */
-    //% block="Use digital meter to indicate values from 0 to 99"
+    //% block="use digital meter to indicate values from 0 to 99"
     //% weight=80 
     export function digital() {
         hide();
