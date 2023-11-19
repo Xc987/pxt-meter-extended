@@ -117,7 +117,7 @@ basic.forever(function () {
 ## Clicker
 A simple use of the default digital meter lets you count things up (with Button B) and down 
 (with Button A). Possibly useful for counting people at an event; or cars in a carpark; 
-or even in sheep in a pen, though the limit is 99!
+or even sheep in a pen, though the limit is 99!
 
 ```blocks
 let count = 0;
