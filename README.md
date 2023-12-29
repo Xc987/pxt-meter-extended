@@ -97,7 +97,7 @@ adjustment or (more usefully) turning off out-of-range error flashing.
 ```sig
 meter.hide()
 ```
-When you no longer want to display a meter, his block clears the display.
+When you no longer want to display a meter, this block clears the display.
 
 # Examples
 
