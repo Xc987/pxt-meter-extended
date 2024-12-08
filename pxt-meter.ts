@@ -70,26 +70,42 @@ namespace meter {
         0x1FFFFFF];
     const tidalBound = 24;
 
+    // SPEEDOMETER: 13 frames rotate 3-pixel needle from left side
+    const speedometerMaps = [
+        0x0001110, 0x0001108, 0x0001084, 0x0001042, 0x0001041, 0x0001060,
+        0x0001C00, 0x0019000, 0x0111000, 0x0211000, 0x0421000, 0x0841000,
+        0x1041000];
+    const speedometerBound = 12;
+
+    // SIGNAL: 15 frames growing in signal form
+    const signalMaps = [
+        0x0000010, 0x0000210, 0x0000310, 0x0004310, 0x0006310, 0x0007310,
+        0x0087310, 0x00C7310, 0x00E7310, 0x00F7310, 0x10F7310, 0x18F7310,
+        0x1CF7310, 0x1EF7310, 0x1FF7310];
+    const signalBound = 14;
+
     // NEEDLE: 17 frames swinging clockwise around top-left corner
     const needleMaps = [
-        0x0108421,  //  0 ----
-        0x0208421,  //  1 -
-        0x0210421,  //  2 --
-        0x0210841,  //  3 -
-        0x0410841,  //  4 ---
-        0x0420841,  //  5 -
-        0x0820841,  //  6 --
-        0x0821041,  //  7 -
-        0x0041041,  //  8 ----
-        0x0083041,  //  9 -
-        0x00820C1,  // 10 --
-        0x00060C1,  // 11 -
-        0x00041C1,  // 12 ---
-        0x0000383,  // 13 -
-        0x0000307,  // 14 --
-        0x000020F,  // 15 -
-        0x000001F]; // 16 ----
+        0x0108421, 0x0208421, 0x0210421, 0x0210841, 0x0410841, 0x0420841,
+        0x0820841, 0x0821041, 0x0041041, 0x0083041, 0x00820C1, 0x00060C1,
+        0x00041C1, 0x0000383, 0x0000307, 0x000020F, 0x000001F];
     const needleBound = 16;
+
+    // NEEDLE: 15 frames swinging clockwise around top-left corner // Im not sure where are the 2 missing frames.
+    const needlerevMaps = [
+        0x1084210, 0x0884210, 0x0844210, 0x0842110, 0x0442110, 0x0422110,
+        0x0221110, 0x0111110, 0x0009910, 0x0008990, 0x00005D0, 0x00000F8,
+        0x000007C, 0x000003E, 0x000001F];
+    const needlerevBound = 14;
+
+    // WATER: 25 frames filling up the screen from the bottom
+    const waterMaps = [
+        0x1000000, 0x1080000, 0x1084000, 0x1084200, 0x1084210, 0x1084218,
+        0x1084318, 0x1086318, 0x10C6318, 0x18C6318, 0x1CC6318, 0x1CE6318,
+        0x1CE7318, 0x1CE7398, 0x1CE739C, 0x1CE739E, 0x1CE73DE, 0x1CE7BDE,
+        0x1CF7BDE, 0x1EF7BDE, 0x1FF7BDE, 0x1FFFBDE, 0x1FFFFDE, 0x1FFFFFE,
+        0x1FFFFFF];
+    const waterBound = 24;
 
     export enum Styles {
         //%block="blob"
@@ -104,6 +120,16 @@ namespace meter {
         Needle,
         //%block="tidal"
         Tidal
+    }
+    export enum Styles2 {
+        //%block="needle"
+        Needlerev,
+        //%block="speedometer"
+        Speedometer,
+        //%block="signal"
+        Signal,
+        //%block="water"
+        Water
     }
     const AnimateID = 9020; // event source ID
     const FinishedEvent = 1;
@@ -135,13 +161,20 @@ namespace meter {
     let tick = 0;          // animation adjusting interval
     let flashGap = 166;    // flashing around 3 times/sec
 
-   function mapToFrame(value: number, start: number, end: number,
-                   startFrame: number, endFrame: number): number {
+    let max = 100
+    let speed = 50
+    let proc = 0 //test
+    let stage = 0 //test
+    let startpos = 0 //test
+    let poslist = [4, 4, 4, 4, 4] //test
+
+    function mapToFrame(value: number, start: number, end: number,
+        startFrame: number, endFrame: number): number {
         let result = endFrame;
         let span = end - start; // (can be negative)	
         let frames = endFrame - startFrame; // (can go backwards)	
         if (startFrame > endFrame) { // count the end frame too
-            frames--; 
+            frames--;
         } else {
             frames++;
         }
@@ -156,17 +189,17 @@ namespace meter {
         // NOTE side effect: sets rangeFixed true if out-of-range, else clears it
         let bottom = Math.min(oneEnd, otherEnd);
         let top = Math.max(oneEnd, otherEnd);
-        let result = value;
+        let result2 = value;
         rangeFixed = false;
         if (value < bottom) {
             rangeFixed = true;
-            result = bottom;
+            result2 = bottom;
         }
         if (value > top) {
             rangeFixed = true;
-            result = top;
+            result2 = top;
         }
-        return Math.round(result)
+        return Math.round(result2)
     }
 
     // modify display to show new frame
@@ -363,5 +396,101 @@ namespace meter {
         basic.clearScreen();
         litMap = 0;
         litFrame = -1;
+    }
+    //% block="use $style meter to show values from $start to $limit" 
+    //% style.defl=meter.Styles2.Speedometer
+    //% start.defl=0
+    //% limit.defl=20
+    //% weight=20
+    //% group="Extended"
+    export function use2(style: Styles2, start: number, limit: number) {
+        styleIs = style;
+        fromValue = start;
+        uptoValue = limit;
+        hide();
+        switch (style) {
+            case Styles2.Needlerev:
+                mapSet = needlerevMaps;
+                bound = needlerevBound;
+                break;
+            case Styles2.Speedometer:
+                mapSet = speedometerMaps;
+                bound = speedometerBound;
+                break;
+            case Styles2.Signal:
+                mapSet = signalMaps;
+                bound = signalBound;
+                break;
+            case Styles2.Water:
+                mapSet = waterMaps;
+                bound = waterBound;
+                break;
+        }
+    }
+    //% block="use moving meter to show $variable , maximum value $max with speed $speed"
+    //% variable.defl=66
+    //% max.defl=100
+    //% speed.defl=50
+    //% speed.shadow="timePicker"
+    //% weight=20
+    //% group="Extended"
+    export function animateduse (variable: number, max: number, speed: number) {
+        
+            proc = variable / max
+            proc = proc * 100
+            proc = Math.trunc(proc)
+            if (proc <= 20 && proc < 21) {
+                startpos = 4
+                led.plot(4, 4)
+            } else if (proc <= 40 && proc < 41) {
+                startpos = 3
+                led.plot(4, 3)
+            } else if (proc <= 60 && proc < 61) {
+                startpos = 2
+                led.plot(4, 2)
+            } else if (proc <= 80 && proc < 81) {
+                startpos = 1
+                led.plot(4, 1)
+            } else if (proc <= 90 || proc >= 90) {
+                startpos = 0
+                led.plot(4, 0)
+            }
+            poslist[stage] = startpos
+            stage += 1
+            if (stage == 5) {
+                stage = 0
+            }
+            if (stage == 0) {
+                led.plot(3, poslist[3])
+                led.plot(2, poslist[2])
+                led.plot(1, poslist[1])
+                led.plot(0, poslist[0])
+            }
+            if (stage == 1) {
+                led.plot(3, poslist[4])
+                led.plot(2, poslist[3])
+                led.plot(1, poslist[2])
+                led.plot(0, poslist[1])
+            }
+            if (stage == 2) {
+                led.plot(3, poslist[0])
+                led.plot(2, poslist[4])
+                led.plot(1, poslist[3])
+                led.plot(0, poslist[2])
+            }
+            if (stage == 3) {
+                led.plot(3, poslist[1])
+                led.plot(2, poslist[0])
+                led.plot(1, poslist[4])
+                led.plot(0, poslist[3])
+            }
+            if (stage == 4) {
+                led.plot(3, poslist[2])
+                led.plot(2, poslist[1])
+                led.plot(1, poslist[0])
+                led.plot(0, poslist[4])
+            }
+            basic.pause(speed)
+            basic.clearScreen()
     }
 }
