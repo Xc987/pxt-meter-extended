@@ -5,8 +5,6 @@
     "license": "MIT",
     "dependencies": {
         "core": "*",
-        "radio": "*",
-        "microphone": "*"
     },
     "files": [
         "README.md",
